@@ -19,10 +19,8 @@ def main():
         'trip_purpose': 'commute'
     }])
 
-    # Загрузка модели
     model = InsuranceRiskModel(model_path="outputs/insurance_model_v1.pkl")
 
-    # Предсказание вероятности
     proba = model.predict_proba(new_case)
     tariff = model.calculate_tariff(proba)
 
