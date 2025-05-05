@@ -1,7 +1,10 @@
+import os
+
 import pandas as pd
 import numpy as np
 from catboost import CatBoostClassifier
 import joblib
+
 
 class InsuranceRiskModel:
     def __init__(self, model_path: str = None):
@@ -26,11 +29,14 @@ class InsuranceRiskModel:
 
     def train(self, data: pd.DataFrame, labels: pd.Series):
         processed = self.preprocess(data)
-        self.model.fit(processed, labels)
+        cat_features = [
+            "vehicle_type", "region", "weather_condition", "road_type", "traffic_density", "trip_purpose"
+        ]
+        self.model.fit(processed, labels, cat_features=cat_features)
 
     def predict_proba(self, case: pd.DataFrame) -> float:
         processed = self.preprocess(case)
-        proba = self.model.predict_proba(processed)[0][1]  # вероятность класса "1" - ДТП
+        proba = self.model.predict_proba(processed)[0][1]
         return proba
 
     def calculate_tariff(self, proba: float, base_tariff: float = 10000, alpha: float = 1.5) -> float:
@@ -38,4 +44,5 @@ class InsuranceRiskModel:
         return round(base_tariff * k_ml, 2)
 
     def save_model(self, path: str):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         joblib.dump(self.model, path)

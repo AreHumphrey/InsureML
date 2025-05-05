@@ -1,0 +1,6 @@
+driver_age,driver_experience,vehicle_age,vehicle_type,region,has_violations,num_claims,accident_history_score,weather_condition,road_type,traffic_density,trip_purpose,target
+35,10,5,sedan,moscow,1,2,0.75,snow,urban,high,work,1
+46,28,3,suv,saint-petersburg,0,0,0.12,rain,highway,medium,leisure,0
+29,5,8,hatchback,novosibirsk,1,1,0.43,sunny,rural,low,business,1
+51,30,12,truck,yekaterinburg,0,0,0.07,fog,urban,medium,work,0
+22,3,2,van,kazan,1,3,0.88,snow,highway,high,leisure,1

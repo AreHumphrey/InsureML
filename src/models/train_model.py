@@ -1,16 +1,22 @@
 import pandas as pd
-from catboost import CatBoostClassifier
-from sklearn.model_selection import train_test_split
+from src.models.insurance_model import InsuranceRiskModel
+from src.data.load_data import load_dataset
+from src.data.preprocess_data import preprocess
 
 
-def train_model(df: pd.DataFrame, target_column: str):
+def main():
 
-    X = df.drop(columns=[target_column])
-    y = df[target_column]
+    df = load_dataset("data/raw/insurance_data.csv")
+    df_clean = preprocess(df)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X = df_clean.drop(columns=["target"])
+    y = df_clean["target"]
 
-    model = CatBoostClassifier(verbose=0)
-    model.fit(X_train, y_train)
+    model = InsuranceRiskModel()
+    model.train(X, y)
 
-    return model, X_test, y_test
+    model.save_model("outputs/insurance_model_v1.pkl")
+    print("Модель успешно обучена и сохранена.")
+
+if __name__ == "__main__":
+    main()
