@@ -1,4 +1,4 @@
-# src/generate_and_test.py
+
 import pandas as pd
 import numpy as np
 import os
@@ -8,7 +8,7 @@ from sklearn.metrics import classification_report, confusion_matrix, roc_auc_sco
 from catboost import CatBoostClassifier, Pool
 import matplotlib.pyplot as plt
 
-# Создание синтетического датасета
+
 def generate_dummy_data():
     np.random.seed(42)
     n = 100
@@ -29,9 +29,8 @@ def generate_dummy_data():
     })
     os.makedirs("data/raw", exist_ok=True)
     data.to_csv("data/raw/insurance_data.csv", index=False)
-    print("✅ Синтетический датасет создан и сохранён в data/raw/insurance_data.csv")
+    print("Синтетический датасет создан и сохранён в data/raw/insurance_data.csv")
 
-# Запуск теста
 def evaluate_model():
     df = pd.read_csv("data/raw/insurance_data.csv")
     X = df.drop(columns=["target"])
@@ -49,14 +48,14 @@ def evaluate_model():
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1]
 
-    print("\n📌 Классификационный отчёт:\n")
+    print("\n Классификационный отчёт:\n")
     print(classification_report(y_test, y_pred, digits=3))
 
-    print("\n📌 Матрица ошибок:")
+    print("\n Матрица ошибок:")
     print(confusion_matrix(y_test, y_pred))
 
     roc_auc = roc_auc_score(y_test, y_proba)
-    print(f"\n📈 ROC-AUC: {roc_auc:.3f}")
+    print(f"\n ROC-AUC: {roc_auc:.3f}")
 
     fpr, tpr, _ = roc_curve(y_test, y_proba)
     plt.figure()
