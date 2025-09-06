@@ -13,13 +13,28 @@ class InsuranceRiskModel:
             self.model = CatBoostClassifier(verbose=0)
 
         self.required_features = [
-            'driver_age', 'driver_experience', 'vehicle_age', 'vehicle_type',
-            'region', 'has_violations', 'num_claims', 'accident_history_score',
-            'weather_condition', 'road_type', 'traffic_density', 'trip_purpose'
+            'driver_age',
+            'driver_experience',
+            'vehicle_age',
+            'vehicle_type',
+            'engine_power',
+            'vehicle_purpose',
+            'region',
+            'pct_days_with_snow',
+            'pct_days_with_rain',
+            'winter_duration_months',
+            'base_kbm',
+            'num_claims',
+            'violation_count',
+            'days_since_last_claim',
+            'occupation_type',
+            'avg_trips_per_week',
+            'night_driving_ratio',
+            'is_unlimited_policy'
         ]
 
         self.cat_features = [
-            "vehicle_type", "region", "weather_condition", "road_type", "traffic_density", "trip_purpose"
+            "vehicle_type", "region", "vehicle_purpose", "occupation_type", "is_unlimited_policy"
         ]
 
     def preprocess(self, input_data: pd.DataFrame) -> pd.DataFrame:
@@ -28,12 +43,16 @@ class InsuranceRiskModel:
             if col not in df.columns:
                 df[col] = np.nan
 
-        num_features = ['driver_age', 'driver_experience', 'vehicle_age', 'accident_history_score']
+        num_features = ['driver_age', 'driver_experience', 'vehicle_age', 'engine_power',
+                        'pct_days_with_snow', 'pct_days_with_rain', 'winter_duration_months',
+                        'base_kbm', 'num_claims', 'violation_count', 'days_since_last_claim',
+                        'avg_trips_per_week', 'night_driving_ratio']
         for col in num_features:
-            if df[col].isnull().all():
-                df[col] = 0
-            else:
-                df[col].fillna(df[col].median(), inplace=True)
+            if col in df.columns:
+                if df[col].isnull().all():
+                    df[col] = 0
+                else:
+                    df[col].fillna(df[col].median(), inplace=True)
 
         for col in self.cat_features:
             if col in df.columns:
@@ -50,15 +69,10 @@ class InsuranceRiskModel:
         proba = self.model.predict_proba(processed)[0][1]
         return proba
 
-    def calculate_adjusted_kbm(self,
-                               case: pd.DataFrame,
-                               base_kbm: float = 1.0,
-                               avg_proba: float = 0.3,
-                               beta: float = 1.5) -> float:
-
+    def calculate_adjusted_kbm(self, case: pd.DataFrame, base_kbm: float = 1.0,
+                               avg_proba: float = 0.3, beta: float = 1.5) -> float:
         proba = self.predict_proba(case)
         kbm_adjusted = base_kbm * (1 + beta * (proba - avg_proba))
-
         kbm_final = max(0.46, min(3.92, kbm_adjusted))
         return round(kbm_final, 2)
 
