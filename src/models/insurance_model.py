@@ -30,11 +30,16 @@ class InsuranceRiskModel:
             'occupation_type',
             'avg_trips_per_week',
             'night_driving_ratio',
-            'is_unlimited_policy'
+            'ko_multiplier',
+            'num_owned_vehicles'
         ]
 
+
         self.cat_features = [
-            "vehicle_type", "region", "vehicle_purpose", "occupation_type", "is_unlimited_policy"
+            "vehicle_type",
+            "region",
+            "vehicle_purpose",
+            "occupation_type"
         ]
 
     def preprocess(self, input_data: pd.DataFrame) -> pd.DataFrame:
@@ -43,10 +48,12 @@ class InsuranceRiskModel:
             if col not in df.columns:
                 df[col] = np.nan
 
-        num_features = ['driver_age', 'driver_experience', 'vehicle_age', 'engine_power',
-                        'pct_days_with_snow', 'pct_days_with_rain', 'winter_duration_months',
-                        'base_kbm', 'num_claims', 'violation_count', 'days_since_last_claim',
-                        'avg_trips_per_week', 'night_driving_ratio']
+        num_features = [
+            'driver_age', 'driver_experience', 'vehicle_age', 'engine_power',
+            'pct_days_with_snow', 'pct_days_with_rain', 'winter_duration_months',
+            'base_kbm', 'num_claims', 'violation_count', 'days_since_last_claim',
+            'avg_trips_per_week', 'night_driving_ratio', 'ko_multiplier', 'num_owned_vehicles'
+        ]
         for col in num_features:
             if col in df.columns:
                 if df[col].isnull().all():
