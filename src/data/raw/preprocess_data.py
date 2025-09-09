@@ -2,11 +2,7 @@ import pandas as pd
 
 
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:
-
     df = df.copy()
-
-    if df.isnull().any().any():
-        print("Найдены пропущенные значения. Выполняется заполнение...")
 
     num_features = [
         'driver_age', 'driver_experience', 'vehicle_age', 'engine_power',
@@ -17,10 +13,8 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
 
     for col in num_features:
         if col in df.columns:
-            if df[col].isnull().all():
-                df[col] = 0
-            else:
-                df[col].fillna(df[col].median(), inplace=True)
+            median_val = df[col].median()
+            df[col] = df[col].fillna(median_val)
 
     cat_features = [
         'vehicle_type', 'region', 'vehicle_purpose', 'occupation_type'
@@ -28,7 +22,7 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
 
     for col in cat_features:
         if col in df.columns:
-            df[col].fillna("unknown", inplace=True)
+            df[col] = df[col].fillna("unknown")
 
     df['driver_age'] = df['driver_age'].clip(18, 80)
     df['driver_experience'] = df['driver_experience'].clip(0, 60)

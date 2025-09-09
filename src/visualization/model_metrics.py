@@ -27,12 +27,12 @@ def generate_dummy_data():
         "trip_purpose": np.random.choice(["commute", "personal", "commercial"], n),
         "target": np.random.choice([0, 1], n, p=[0.6, 0.4])
     })
-    os.makedirs("data/raw", exist_ok=True)
+    os.makedirs("../data/raw", exist_ok=True)
     data.to_csv("data/raw/insurance_data.csv", index=False)
     print("Синтетический датасет создан и сохранён в data/raw/insurance_data.csv")
 
 def evaluate_model():
-    df = pd.read_csv("data/raw/insurance_data.csv")
+    df = pd.read_csv("../data/raw/insurance_data.csv")
     X = df.drop(columns=["target"])
     y = df["target"]
 
