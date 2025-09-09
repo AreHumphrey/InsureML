@@ -1,3 +1,4 @@
+# src/train.py
 import pandas as pd
 from src.models.insurance_model import InsuranceRiskModel
 from src.data.load_data import load_dataset
@@ -17,6 +18,7 @@ def main():
 
     model.save_model("outputs/insurance_model_v1.pkl")
     print("Модель успешно обучена и сохранена.")
+
 
 if __name__ == "__main__":
     main()
