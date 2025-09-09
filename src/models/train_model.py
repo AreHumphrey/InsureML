@@ -1,8 +1,6 @@
-# src/train.py
-import pandas as pd
 from src.models.insurance_model import InsuranceRiskModel
-from src.data.load_data import load_dataset
-from src.data.preprocess_data import preprocess
+from src.data.raw.load_data import load_dataset
+from src.data.raw.preprocess_data import preprocess
 
 
 def main():
