@@ -56,14 +56,12 @@ class InsuranceRiskModel:
         ]
         for col in num_features:
             if col in df.columns:
-                if df[col].isnull().all():
-                    df[col] = 0
-                else:
-                    df[col].fillna(df[col].median(), inplace=True)
+                median_val = df[col].median()
+                df[col] = df[col].fillna(median_val)
 
         for col in self.cat_features:
             if col in df.columns:
-                df[col].fillna("unknown", inplace=True)
+                df[col] = df[col].fillna("unknown")
 
         return df[self.required_features]
 
