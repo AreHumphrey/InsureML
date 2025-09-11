@@ -7,7 +7,7 @@ from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score, roc_auc_score,
     classification_report, roc_curve
 )
-from src.models.insurance_model import InsuranceRiskModel
+from src.models.catboost.insurance_model import InsuranceRiskModel
 
 sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (12, 8)

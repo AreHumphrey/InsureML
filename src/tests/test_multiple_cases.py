@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 def main():
 
-    model = InsuranceRiskModel(model_path="outputs/insurance_model_v1.pkl")
+    model = InsuranceRiskModel(model_path="../outputs/insurance_model_v1.pkl")
 
     cases = [
         {
