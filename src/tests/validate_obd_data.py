@@ -181,7 +181,7 @@ def main():
         print(f"Доля поездок с ошибками DTC: {summary['has_dtc_errors'].mean():.1%}")
 
 
-        summary.to_csv("data/validation_summary.csv", index=False)
+        summary.to_csv("src/data/validation_summary.csv", index=False)
         print("✅ Сводка сохранена: data/validation_summary.csv")
     else:
         print("❌ Ни одна поездка не прошла проверку качества.")
