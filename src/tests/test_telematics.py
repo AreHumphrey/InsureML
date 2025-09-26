@@ -1,80 +1,125 @@
 # src/tests/test_telematics.py
-from src.models.lightgbm.telematics_model import TelematicsRiskModel
+"""
+Тестирование модели на obd_data_large.csv.
+Прямо используем имеющиеся столбцы accel_x/y/z, без преобразования в accData.
+"""
+
+import unittest
+
+import numpy as np
 import pandas as pd
+from pathlib import Path
+from src.models.lightgbm.telematics_model import TelematicsRiskModel
 
-def print_trip_summary(trip_df: pd.DataFrame, title: str):
-    """
-    Выводит подробную сводку по поездке.
-    """
-    row = trip_df.iloc[0]
-    print(f"\n{'='*60}")
-    print(f"📌 {title.upper()}")
-    print(f"{'='*60}")
-    print(f"🚗 Общие параметры:")
-    print(f"   • Средняя скорость:      {row['avg_speed']:>6.1f} км/ч")
-    print(f"   • Максимальная скорость: {row['max_speed']:>6.1f} км/ч")
-    print(f"   • Колебания скорости:    {row['std_speed']:>6.1f} км/ч")
-    print(f"   • Пробег:                {row['distance_km']:>6.1f} км")
-    print(f"   • Длительность:          {row['trip_duration_min']:>6.0f} мин")
 
-    print(f"\n🌙 Вождение в темное время:")
-    print(f"   • Доля ночных поездок:    {row['night_driving_ratio']:.0%}")
+class TestObdDataLarge(unittest.TestCase):
 
-    print(f"\n🔧 Техническое состояние:")
-    print(f"   • Есть ошибки DTC:        {'Да' if row['has_dtc_errors'] else 'Нет'}")
-    print(f"   • Ср. температура ОЖ:     {row['avg_coolant_temp']:>6.0f} °C")
-    print(f"   • Ср. температура на впуске: {row['avg_iat']:>6.0f} °C")
+    def setUp(self):
+        """Подготавливаем путь к файлу"""
+        self.file_path = "src/data/raw/test_telemetry/obd_data_large.csv"
+        if not Path(self.file_path).exists():
+            raise FileNotFoundError(f"Файл не найден: {self.file_path}")
 
-def main():
-    # Пример "спокойной" поездки
-    safe_trip = pd.DataFrame([{
-        'avg_speed': 45.0,
-        'max_speed': 80.0,
-        'std_speed': 8.0,
-        'night_driving_ratio': 0.05,
-        'trip_duration_min': 30,
-        'distance_km': 25,
-        'has_dtc_errors': False,
-        'avg_coolant_temp': 90,
-        'avg_iat': 25
-    }])
+        self.df = pd.read_csv(self.file_path)
+        print(f"✅ Загружено {len(self.df)} строк из {self.file_path}.")
 
-    # Пример "агрессивной" поездки
-    risky_trip = pd.DataFrame([{
-        'avg_speed': 65.0,
-        'max_speed': 120.0,
-        'std_speed': 22.0,
-        'night_driving_ratio': 0.7,
-        'trip_duration_min': 45,
-        'distance_km': 60,
-        'has_dtc_errors': True,
-        'avg_coolant_temp': 98,
-        'avg_iat': 30
-    }])
+    def test_columns_present(self):
+        """Проверяем, что все нужные колонки есть"""
+        required_cols = {
+            'trip_id', 'driver_id', 'timestamp', 'gps_speed',
+            'accel_x', 'accel_y', 'accel_z'
+        }
+        missing = required_cols - set(self.df.columns)
 
-    # Загрузка модели
-    model = TelematicsRiskModel(model_path="outputs/lightgbm/telematics_model_v1.pkl")
-    print("✅ Модель телематики загружена")
+        self.assertEqual(len(missing), 0, f"❌ Отсутствуют колонки: {missing}")
+        print("✅ Все необходимые колонки присутствуют.")
 
-    # Сводка по спокойной поездке
-    print_trip_summary(safe_trip, "Спокойная поездка")
-    risk_safe = model.predict_risk(safe_trip)
-    print(f"\n🎯 Прогноз модели:")
-    print(f"   → Вероятность ДТП: {risk_safe:.2%}")
+    def test_no_empty_gps_speed(self):
+        """Проверяем, что нет пустых значений gps_speed"""
+        invalid_rows = self.df[self.df['gps_speed'].isna()]
+        self.assertEqual(len(invalid_rows), 0, f"❌ Есть строки с пустым gps_speed: {len(invalid_rows)}")
+        print("✅ Нет пустых значений скорости.")
 
-    # Сводка по агрессивной поездке
-    print_trip_summary(risky_trip, "Агрессивная поездка")
-    risk_risky = model.predict_risk(risky_trip)
-    print(f"\n🎯 Прогноз модели:")
-    print(f"   → Вероятность ДТП: {risk_risky:.2%}")
+    def test_valid_speed_range(self):
+        """Скорость должна быть в диапазоне 0–200 км/ч"""
+        out_of_range = self.df[(self.df['gps_speed'] < 0) | (self.df['gps_speed'] > 200)]
+        self.assertEqual(len(out_of_range), 0, f"❌ Скорость вне диапазона: {len(out_of_range)} строк")
+        print("✅ Все значения скорости в допустимом диапазоне.")
 
-    # Итоговое сравнение
-    print("\n" + "="*60)
-    if risk_risky > risk_safe:
-        print("✅ МОДЕЛЬ КОРРЕКТНО ОЦЕНИВАЕТ ПОВЕДЕНИЕ")
-        print(f"   Разница в риске: {risk_risky - risk_safe:.2%}")
-    else:
-        print("⚠️  Модель не различает уровни риска — требуется дообучение")
+    def test_trip_duration_and_features(self):
+        """Извлекаем признаки для каждой поездки"""
+        results = []
 
-if __name__ == "__main__":
-    main()
+        for trip_id, group in self.df.groupby('trip_id'):
+            # Преобразуем время
+            group = group.copy()
+            group['timestamp'] = pd.to_datetime(group['timestamp'], errors='coerce')
+            group.dropna(subset=['timestamp'], inplace=True)
+            group.sort_values('timestamp', inplace=True)
+
+            duration_seconds = (group['timestamp'].max() - group['timestamp'].min()).total_seconds()
+
+            avg_speed = group['gps_speed'].mean()
+            max_speed = group['gps_speed'].max()
+
+            # Резкие ускорения/торможения (продольное ускорение)
+            longitudinal_accel = group['accel_y']
+            hard_brakes = ((longitudinal_accel < -2.0) & (group['gps_speed'] > 10)).sum()
+            hard_accels = (longitudinal_accel > 2.0).sum()
+
+            # Агрессивные повороты (боковое ускорение)
+            lateral_accel = group['accel_x']
+            sharp_turns = (np.abs(lateral_accel) > 3.0).sum()
+
+            # Вождение ночью
+            night_driving = group['timestamp'].dt.hour.isin(range(0, 6))
+            night_driving_ratio = night_driving.mean()
+
+            result = {
+                'trip_id': trip_id,
+                'duration_sec': duration_seconds,
+                'avg_speed': avg_speed,
+                'max_speed': max_speed,
+                'hard_brakes': int(hard_brakes),
+                'hard_accels': int(hard_accels),
+                'sharp_turns': int(sharp_turns),
+                'night_driving_ratio': night_driving_ratio,
+                'has_dtc_errors': False,
+                'data_frequency_hz': len(group) / (duration_seconds + 1e-8)
+            }
+            results.append(result)
+
+            print(f"\n📊 Поездка ID {int(trip_id)}:")
+            print(f"   • Длительность:         {duration_seconds:.0f} сек")
+            print(f"   • Средняя скорость:     {avg_speed:.1f} км/ч")
+            print(f"   • Максимальная:         {max_speed:.1f} км/ч")
+            print(f"   • Резкие тормоза:       {hard_brakes}")
+            print(f"   • Резкие разгоны:       {hard_accels}")
+            print(f"   • Агрессивные повороты: {sharp_turns}")
+            print(f"   • Доля ночного:         {night_driving_ratio:.1%}")
+
+        return pd.DataFrame(results)
+
+    def test_model_prediction(self):
+        """Тестируем модель на извлечённых признаках"""
+        features_df = self.test_trip_duration_and_features()
+
+        # Загружаем модель
+        model = TelematicsRiskModel(model_path="src/outputs/lightgbm/telematics_model_v1.pkl")
+
+        print("\n🎯 ПРЕДСКАЗАНИЕ МОДЕЛИ")
+        print("=" * 50)
+
+        for _, row in features_df.iterrows():
+            # Подготовка данных для модели
+            X = row.drop(['trip_id']).to_frame().T  # сделать DataFrame
+
+            try:
+                risk_score = model.predict_risk(X)
+                print(f"Поездка ID {int(row['trip_id'])} → риск ДТП: {risk_score:.2%}")
+            except Exception as e:
+                print(f"❌ Ошибка при предсказании для поездки {row['trip_id']}: {e}")
+
+
+if __name__ == '__main__':
+    unittest.main()
