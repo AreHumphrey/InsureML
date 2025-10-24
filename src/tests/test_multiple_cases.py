@@ -1,6 +1,6 @@
 
 import pandas as pd
-from src.models.insurance_model import InsuranceRiskModel
+from src.models.catboost.insurance_model import InsuranceRiskModel
 import matplotlib.pyplot as plt
 
 def main():
