@@ -3,11 +3,11 @@ from src.models.hybrid.kbm_calculator import HybridKBMCalculator
 
 
 def test_case(name: str, obd_file_path: str = None):
-    print(f"\n🧪 СЦЕНАРИЙ: {name}")
+    print(f"\nСЦЕНАРИЙ: {name}")
     if obd_file_path:
-        print(f"📁 Используется файл: {obd_file_path}")
+        print(f"Используется файл: {obd_file_path}")
     else:
-        print("📁 OBD-файл не предоставлен")
+        print("OBD-файл не предоставлен")
 
     calculator = HybridKBMCalculator(model_path="src/outputs/insurance_model_v1.cbm")
 
@@ -44,7 +44,7 @@ def test_case(name: str, obd_file_path: str = None):
 
 
 def main():
-    print("🚀 ЗАПУСК ТЕСТОВЫХ СЦЕНАРИЕВ ГИБРИДНОГО КБМ")
+    print("ЗАПУСК ТЕСТОВЫХ СЦЕНАРИЕВ ГИБРИДНОГО КБМ")
     print("=" * 80)
 
     test_case("Только анкета", obd_file_path=None)
@@ -55,7 +55,7 @@ def main():
 
     test_case("Агрессивное вождение", obd_file_path="src/data/tests/v2_aggressive.csv")
 
-    print("\n✅ Все сценарии протестированы.")
+    print("\nВсе сценарии протестированы.")
 
 
 if __name__ == "__main__":

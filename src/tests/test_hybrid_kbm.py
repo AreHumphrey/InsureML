@@ -1,8 +1,3 @@
-# src/tests/test_hybrid_kbm.py
-"""
-Тестирование гибридного калькулятора КБМ.
-"""
-
 from src.models.hybrid.kbm_calculator import HybridKBMCalculator
 
 
@@ -54,10 +49,9 @@ def main():
             'num_owned_vehicles': 1,
             'description': 'Аккуратный пенсионер'
         }
-        # Добавь больше случаев при необходимости
+
     ]
 
-    # Запуск полного расчёта
     result_df = calculator.calculate(
         cases=cases,
         obd_file_path="src/data/raw/v2.csv",
