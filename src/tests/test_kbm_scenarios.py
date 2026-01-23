@@ -1,17 +1,19 @@
 
-from src.models.hybrid.kbm_calculator import HybridKBMCalculator
+
+from src.models.hybrid.osago_calculator import OSAGOCalculator
+import pandas as pd
 
 
 def test_case(name: str, obd_file_path: str = None):
-    print(f"\nСЦЕНАРИЙ: {name}")
+    print(f"\n СЦЕНАРИЙ: {name}")
     if obd_file_path:
-        print(f"Используется файл: {obd_file_path}")
+        print(f" Используется файл: {obd_file_path}")
     else:
-        print("OBD-файл не предоставлен")
+        print(" OBD-файл не предоставлен")
 
-    calculator = HybridKBMCalculator(model_path="src/outputs/insurance_model_v1.cbm")
+    calc = OSAGOCalculator(model_path="src/outputs/insurance_model_v1.cbm")
 
-    case = {
+    driver_case = pd.DataFrame([{
         'driver_age': 35,
         'driver_experience': 10,
         'vehicle_age': 3,
@@ -32,19 +34,32 @@ def test_case(name: str, obd_file_path: str = None):
         'ko_multiplier': 1.0,
         'num_owned_vehicles': 1,
         'description': 'Тестовый водитель'
-    }
+    }])
 
-    result_df = calculator.calculate(
-        cases=[case],
+    # Расчёт тарифа
+    result = calc.calculate_osago_premium(
+        driver_data=driver_case,
         obd_file_path=obd_file_path,
-        show_plot=False
+        base_tariff=2000.0,
+        region_coeff=1.8,
+        engine_power_coeff=1.2,
+        age_exp_coeff=1.4,
+        unlimited_drivers=False,
+        season_coeff=1.0
     )
 
-    return result_df
+    print(f"\n РЕЗУЛЬТАТЫ РАСЧЁТА ОСАГО")
+    print("=" * 50)
+    print(f"   • Базовый КБМ:     {result['base_kbm']:.2f}")
+    print(f"   • Итоговый КБМ:    {result['final_kbm']:.2f}")
+    print(f"   • Итоговый тариф:  {result['tariff']:.2f} ₽")
+    print("=" * 50)
+
+    return result
 
 
 def main():
-    print("ЗАПУСК ТЕСТОВЫХ СЦЕНАРИЕВ ГИБРИДНОГО КБМ")
+    print("ТЕСТИРОВАНИЕ ГИБРИДНОГО КАЛЬКУЛЯТОРА ОСАГО")
     print("=" * 80)
 
     test_case("Только анкета", obd_file_path=None)

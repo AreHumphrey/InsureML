@@ -2,7 +2,7 @@ from src.models.hybrid.kbm_calculator import HybridKBMCalculator
 
 
 def main():
-    calculator = HybridKBMCalculator(model_path="src/outputs/insurance_model_v1.cbm") # или "insurance_model_v1.pkl"
+    calculator = HybridKBMCalculator(model_path="src/outputs/insurance_model_v1.cbm")
 
     cases = [
         {
