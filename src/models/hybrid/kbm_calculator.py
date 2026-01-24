@@ -6,10 +6,9 @@ import matplotlib.pyplot as plt
 
 class HybridKBMCalculator:
     def __init__(self, model_path: str = "outputs/insurance_model_v1.cbm"):
-
         self.model = InsuranceRiskModel()
 
-        if not model_path.startswith(""):
+        if not model_path.startswith("outputs/"):
             model_path = f"outputs/{model_path}"
 
         if model_path.endswith(".cbm"):
@@ -27,7 +26,6 @@ class HybridKBMCalculator:
                 raise FileNotFoundError(f"Не удалось загрузить модель: {e}")
 
     def calculate(self, cases: list, obd_file_path: str = None, show_plot: bool = True) -> pd.DataFrame:
-
         has_dtc = False
         if obd_file_path:
             has_dtc = check_dtc_in_file(obd_file_path)
@@ -73,7 +71,6 @@ class HybridKBMCalculator:
 
     @staticmethod
     def _plot_results(results_df: pd.DataFrame):
-
         plt.figure(figsize=(12, 6))
         bars = plt.barh(results_df['Описание'], results_df['Итоговый КБМ'], color='skyblue', edgecolor='black')
         plt.title("Итоговый КБМ после учёта DTC", fontsize=16)

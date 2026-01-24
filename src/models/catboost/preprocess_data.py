@@ -1,5 +1,5 @@
 import pandas as pd
-
+import numpy as np
 
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
@@ -24,6 +24,7 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
         if col in df.columns:
             df[col] = df[col].fillna("unknown")
 
+    # Клипинг
     df['driver_age'] = df['driver_age'].clip(18, 80)
     df['driver_experience'] = df['driver_experience'].clip(0, 60)
     df['engine_power'] = df['engine_power'].clip(60, 300)

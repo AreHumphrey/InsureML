@@ -1,107 +1,168 @@
+
+
+from src.models.catboost.insurance_model import InsuranceRiskModel
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score, f1_score, roc_auc_score,
-    classification_report, roc_curve
-)
-from src.models.catboost.insurance_model import InsuranceRiskModel
+from sklearn.metrics import confusion_matrix, roc_curve, auc, accuracy_score, precision_score, recall_score, f1_score, \
+    roc_auc_score
+import numpy as np
 
-sns.set_style("whitegrid")
-plt.rcParams['figure.figsize'] = (12, 8)
 
-def main():
+def load_and_analyze(model_path="outputs/insurance_model_v1.cbm"):
 
-    model = InsuranceRiskModel(model_path="./src/outputs/insurance_model_v1.pkl")
-    print("Модель загружена")
+    model = InsuranceRiskModel(model_path=model_path)
 
-    df = pd.read_csv("./src/data/raw/insurance_data.csv")
-    print(f"Датасет загружен: {len(df)} строк, {len(df.columns)} столбцов")
 
+    # Загрузка данных
+    try:
+        df = pd.read_csv("src/data/raw/insurance_data.csv")
+    except FileNotFoundError:
+        print("❌ Файл данных не найден. Используем тестовые данные.")
+        df = pd.DataFrame([{
+            'driver_age': 30,
+            'driver_experience': 8,
+            'vehicle_age': 3,
+            'vehicle_type': 'sedan',
+            'engine_power': 150,
+            'vehicle_purpose': 'personal',
+            'region': 'Moscow',
+            'pct_days_with_snow': 0.35,
+            'pct_days_with_rain': 0.45,
+            'winter_duration_months': 5,
+            'base_kbm': 1.0,
+            'num_claims': 1,
+            'violation_count': 1,
+            'days_since_last_claim': 365,
+            'occupation_type': 'office_worker',
+            'avg_trips_per_week': 8,
+            'night_driving_ratio': 0.1,
+            'ko_multiplier': 1.0,
+            'num_owned_vehicles': 1,
+            'target': 0
+        }, {
+            'driver_age': 25,
+            'driver_experience': 3,
+            'vehicle_age': 1,
+            'vehicle_type': 'hatchback',
+            'engine_power': 105,
+            'vehicle_purpose': 'personal',
+            'region': 'urban',
+            'pct_days_with_snow': 0.3,
+            'pct_days_with_rain': 0.4,
+            'winter_duration_months': 4,
+            'base_kbm': 1.0,
+            'num_claims': 0,
+            'violation_count': 2,
+            'days_since_last_claim': 100,
+            'occupation_type': 'student',
+            'avg_trips_per_week': 6,
+            'night_driving_ratio': 0.3,
+            'ko_multiplier': 1.0,
+            'num_owned_vehicles': 1,
+            'target': 1
+        }])
+
+    # Предобработка через единый pipeline
     X = df.drop(columns=["target"])
-    y = df["target"].values
+    y = df["target"]
 
-    y_proba_list = []
-    for idx, row in X.iterrows():
-        case_df = row.to_frame().T
-        proba = model.predict_proba(case_df)
-        y_proba_list.append(proba)
+    # Используем preprocess из модели — он уже включает генерацию признаков
+    X_processed = model.preprocess(X)
 
-    y_proba = np.array(y_proba_list)
-    y_pred = (y_proba > 0.5).astype(int)
-    y_pred = y_pred.reshape(-1)
+    # Предсказания
+    y_pred_proba = model.model.predict_proba(X_processed)[:, 1]
 
-    assert y.shape == y_pred.shape, f"Размеры не совпадают: y={y.shape}, y_pred={y_pred.shape}"
-    print(f"Форма y: {y.shape}, Форма y_pred: {y_pred.shape}")
+    # Используем порог из модели, если он установлен, иначе 0.5
+    threshold = getattr(model, 'threshold', 0.5)
+    y_pred = (y_pred_proba >= threshold).astype(int)
 
-    print("\n" + "=" * 50)
-    print("МЕТРИКИ КАЧЕСТВА МОДЕЛИ")
-    print("=" * 50)
-    print(f"Accuracy:  {accuracy_score(y, y_pred):.3f}")
-    print(f"Precision: {precision_score(y, y_pred):.3f}")
-    print(f"Recall:    {recall_score(y, y_pred):.3f}")
-    print(f"F1-Score:  {f1_score(y, y_pred):.3f}")
-    print(f"AUC-ROC:   {roc_auc_score(y, y_proba):.3f}")
+    # Визуализация
+    plot_confusion_matrix(y, y_pred)
+    plot_roc_curve(y, y_pred_proba)
+    print_metrics(y, y_pred_proba, threshold=threshold)
+    plot_feature_importance(model)
 
-    print("\nКлассификационный отчёт:")
-    print(classification_report(y, y_pred, target_names=["Нет ДТП", "Есть ДТП"]))
 
-    fpr, tpr, _ = roc_curve(y, y_proba)
+def plot_confusion_matrix(y_true, y_pred):
+    cm = confusion_matrix(y_true, y_pred)
+    plt.figure(figsize=(6, 5))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False,
+                xticklabels=['Нет ДТП', 'ДТП'],
+                yticklabels=['Нет ДТП', 'ДТП'])
+    plt.title('Матрица ошибок (Confusion Matrix)')
+    plt.xlabel('Предсказано')
+    plt.ylabel('Факт')
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_roc_curve(y_true, y_proba):
+    fpr, tpr, _ = roc_curve(y_true, y_proba)
+    auc_score = auc(fpr, tpr)
+
     plt.figure(figsize=(8, 6))
-    plt.plot(fpr, tpr, label=f'ROC Curve (AUC = {roc_auc_score(y, y_proba):.3f})')
-    plt.plot([0, 1], [0, 1], 'k--', label='Random Classifier')
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC-кривая модели CatBoost')
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
-
-    feature_importance = model.model.get_feature_importance()
-    feature_names = model.required_features
-    importance_df = pd.DataFrame({
-        'feature': feature_names,
-        'importance': feature_importance
-    }).sort_values('importance', ascending=False)
-
-    plt.figure(figsize=(10, 6))
-    sns.barplot(data=importance_df.head(10), x='importance', y='feature', palette='viridis')
-    plt.title('Топ-10 самых важных признаков')
-    plt.xlabel('Важность (CatBoost)')
-    plt.ylabel('Признак')
+    plt.plot(fpr, tpr, color='blue', lw=2, label=f'ROC-кривая (AUC = {auc_score:.4f})')
+    plt.plot([0, 1], [0, 1], color='gray', lw=2, linestyle='--', label='Случайная модель')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate (FPR)')
+    plt.ylabel('True Positive Rate (TPR)')
+    plt.title('ROC-кривая')
+    plt.legend(loc="lower right")
+    plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
 
 
-    print("\n" + "=" * 50)
-    print("ТОП-10 ВАЖНЫХ ПРИЗНАКОВ")
-    print("=" * 50)
-    print(importance_df.head(10).to_string(index=False))
+def print_metrics(y_true, y_proba, threshold=0.5):
+    y_pred = (y_proba >= threshold).astype(int)
 
-    print("\n" + "=" * 50)
-    print("АНАЛИЗ ПО ГРУППАМ")
-    print("=" * 50)
-    df_analysis = df.copy()
-    df_analysis['predicted_proba'] = y_proba
-    df_analysis['predicted_class'] = y_pred
+    acc = accuracy_score(y_true, y_pred)
+    prec = precision_score(y_true, y_pred, zero_division=0)
+    rec = recall_score(y_true, y_pred, zero_division=0)
+    f1 = f1_score(y_true, y_pred, zero_division=0)
+    auc = roc_auc_score(y_true, y_proba)
 
-    risk_by_occupation = df_analysis.groupby('occupation_type')['predicted_proba'].mean().sort_values(ascending=False)
-    print("\nСредняя вероятность ДТП по профессии:")
-    print(risk_by_occupation.round(3))
+    print("\n" + "=" * 60)
+    print("МЕТРИКИ МОДЕЛИ")
+    print("=" * 60)
+    print(f"Порог классификации: {threshold:.3f}")
+    print("-" * 60)
+    print(f"Accuracy:     {acc:.4f}")
+    print(f"Precision:    {prec:.4f}")
+    print(f"Recall:       {rec:.4f}")
+    print(f"F1-Score:     {f1:.4f}")
+    print(f"AUC:          {auc:.4f}")
+    print("=" * 60)
 
-    risk_by_claims = df_analysis.groupby('num_claims')['predicted_proba'].mean()
-    print("\nСредняя вероятность ДТП по числу страховых случаев:")
-    print(risk_by_claims.round(3))
 
-    print("\n" + "=" * 50)
-    print("ВЫВОДЫ")
-    print("=" * 50)
-    print("• Модель показывает высокое качество (AUC > 0.85 — хорошее значение).")
-    print("• Основные факторы риска: num_claims, violation_count, night_driving_ratio.")
-    print("• Модель корректно оценивает профессиональных водителей (курьеры, дальнобойщики).")
-    print("• Результаты интерпретируемы и могут быть использованы в системе ОСАГО.")
+def plot_feature_importance(model):
+    try:
+        feat_imp = model.model.get_feature_importance()
+        feature_names = model.model.feature_names_
+    except Exception as e:
+        print(f"⚠️ Не удалось получить важность признаков: {e}")
+        return
+
+    if len(feat_imp) != len(feature_names):
+        print("⚠️ Несоответствие длины признаков и важности")
+        return
+
+    # Сортировка по убыванию
+    indices = np.argsort(feat_imp)[::-1]
+    top_n = min(15, len(feature_names))  # Показываем топ-15
+    indices = indices[:top_n]
+
+    plt.figure(figsize=(10, 8))
+    plt.barh(range(len(indices)), feat_imp[indices])
+    plt.yticks(range(len(indices)), [feature_names[i] for i in indices])
+    plt.gca().invert_yaxis()  # Самый важный — сверху
+    plt.title('Важность признаков (Top 15)')
+    plt.xlabel('Важность (Feature Importance)')
+    plt.tight_layout()
+    plt.show()
+
 
 if __name__ == "__main__":
-    main()
+    load_and_analyze()

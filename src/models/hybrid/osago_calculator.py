@@ -1,10 +1,9 @@
-from src.models.hybrid.kbm_calculator import HybridKBMCalculator  # ← НОВЫЙ ИМПОРТ
+from src.models.hybrid.kbm_calculator import HybridKBMCalculator
 import pandas as pd
 
 
 class OSAGOCalculator:
     def __init__(self, model_path: str = "src/outputs/insurance_model_v1.cbm"):
-
         self.kbm_model = HybridKBMCalculator(model_path=model_path)
         print("Гибридный калькулятор ОСАГО загружен")
 
