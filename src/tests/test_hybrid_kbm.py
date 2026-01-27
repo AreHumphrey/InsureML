@@ -1,8 +1,10 @@
 from src.models.hybrid.kbm_calculator import HybridKBMCalculator
+import pandas as pd
 
 
 def main():
-    calculator = HybridKBMCalculator(model_path="src/outputs/insurance_model_v1.cbm")
+
+    calculator = HybridKBMCalculator(model_path="outputs/insurance_model_v1.cbm")
 
     cases = [
         {
@@ -49,15 +51,15 @@ def main():
             'num_owned_vehicles': 1,
             'description': 'Аккуратный пенсионер'
         }
-
     ]
 
     result_df = calculator.calculate(
         cases=cases,
-        obd_file_path="src/data/raw/v2.csv",
+        obd_file_path=None,
         show_plot=True
     )
 
+    print("\n✅ Тест завершён. Результаты выше.")
     return result_df
 
 

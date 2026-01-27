@@ -5,12 +5,13 @@ from catboost import CatBoostClassifier
 import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.utils.class_weight import compute_class_weight
+from sklearn.metrics import f1_score, recall_score
 
 pd.set_option('future.no_silent_downcasting', True)
 
 
 class InsuranceRiskModel:
-    def __init__(self, model_path: str = None, class_weights=None):
+    def __init__(self, model_path: str = None):
         if model_path and os.path.exists(model_path):
             if model_path.endswith('.cbm'):
                 self.model = CatBoostClassifier()
@@ -18,16 +19,8 @@ class InsuranceRiskModel:
             else:
                 self.model = joblib.load(model_path)
         else:
-            self.model = CatBoostClassifier(
-                verbose=100,
-                iterations=1000,
-                learning_rate=0.05,
-                depth=6,
-                eval_metric='AUC',
-                early_stopping_rounds=50,
-                random_seed=42,
-                class_weights=class_weights
-            )
+
+            self.model = None
 
         self.required_features = [
             'driver_age',
@@ -58,7 +51,7 @@ class InsuranceRiskModel:
             "occupation_type"
         ]
 
-        self.threshold = 0.5
+        self.threshold = 0.3
 
     def preprocess(self, input_data: pd.DataFrame) -> pd.DataFrame:
         df = input_data.copy()
@@ -66,7 +59,6 @@ class InsuranceRiskModel:
         for col in self.required_features:
             if col not in df.columns:
                 df[col] = np.nan
-
 
         from src.features.feature_engineering import generate_features
         df = generate_features(df)
@@ -80,32 +72,35 @@ class InsuranceRiskModel:
             'experience_ratio',
             'claims_per_year',
             'violations_per_year',
-            'claims_recent',
-            'high_night_driving',
-            'young_inexperienced',
-            'power_to_age',
-            'claim_violation_ratio'
+            'night_x_trips',
+            'power_x_age'
         ]
 
         for col in num_features:
             if col in df.columns:
+
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+
                 median_val = df[col].median()
+                if pd.isna(median_val):
+                    median_val = 0.0
                 df[col] = df[col].fillna(median_val)
 
         for col in self.cat_features:
             if col in df.columns:
-                df[col] = df[col].fillna("unknown")
+                df[col] = df[col].astype(str).fillna("unknown")
 
         all_features = self.required_features + [
             'age_squared',
             'experience_ratio',
             'claims_per_year',
             'violations_per_year',
-            'claims_recent',
-            'high_night_driving',
-            'young_inexperienced',
-            'power_to_age',
-            'claim_violation_ratio'
+            'no_claims_long',
+            'experienced_clean',
+            'young_risky',
+            'high_claims',
+            'night_x_trips',
+            'power_x_age'
         ]
 
         for col in all_features:
@@ -121,18 +116,17 @@ class InsuranceRiskModel:
             processed, labels, test_size=0.2, stratify=labels, random_state=42
         )
 
-        from sklearn.utils.class_weight import compute_class_weight
         classes = np.unique(y_train)
         class_weights = compute_class_weight('balanced', classes=classes, y=y_train)
         weight_dict = dict(zip(classes, class_weights))
 
         self.model = CatBoostClassifier(
             verbose=100,
-            iterations=1000,
-            learning_rate=0.05,
-            depth=6,
+            iterations=1500,
+            learning_rate=0.03,
+            depth=5,
             eval_metric='AUC',
-            early_stopping_rounds=50,
+            early_stopping_rounds=100,
             random_seed=42,
             class_weights=weight_dict
         )
@@ -144,16 +138,27 @@ class InsuranceRiskModel:
             verbose=100
         )
 
-        from sklearn.metrics import f1_score
         y_proba = self.model.predict_proba(X_val)[:, 1]
+
         best_threshold = 0.5
         best_f1 = 0
-        for th in np.arange(0.05, 0.5, 0.01):
+
+        for th in np.arange(0.05, 0.4, 0.01):
             y_pred = (y_proba >= th).astype(int)
-            f1 = f1_score(y_val, y_pred)
-            if f1 > best_f1:
-                best_f1 = f1
-                best_threshold = th
+            rec = recall_score(y_val, y_pred)
+            if rec >= 0.6:
+                f1 = f1_score(y_val, y_pred)
+                if f1 > best_f1:
+                    best_f1 = f1
+                    best_threshold = th
+
+        if best_f1 == 0:
+            for th in np.arange(0.05, 0.5, 0.01):
+                y_pred = (y_proba >= th).astype(int)
+                f1 = f1_score(y_val, y_pred)
+                if f1 > best_f1:
+                    best_f1 = f1
+                    best_threshold = th
 
         self.threshold = best_threshold
         print(f"Оптимальный порог: {self.threshold:.3f}, F1: {best_f1:.4f}")
@@ -163,13 +168,11 @@ class InsuranceRiskModel:
         proba = self.model.predict_proba(processed)[0][1]
         return float(proba)
 
-    def predict(self, case: pd.DataFrame) -> int:
-        proba = self.predict_proba(case)
-        return 1 if proba >= self.threshold else 0
-
     def calculate_adjusted_kbm(self, case: pd.DataFrame, base_kbm: float = 1.0,
-                               avg_proba: float = 0.3, beta: float = 1.5) -> float:
+                               avg_proba: float = None, beta: float = 1.5) -> float:
         proba = self.predict_proba(case)
+        if avg_proba is None:
+            avg_proba = 0.3
         kbm_adjusted = base_kbm * (1 + beta * (proba - avg_proba))
         kbm_final = max(0.46, min(3.92, kbm_adjusted))
         return round(kbm_final, 2)

@@ -10,10 +10,17 @@ def generate_features(df: pd.DataFrame) -> pd.DataFrame:
     df['claims_per_year'] = df['num_claims'] / (df['driver_experience'] + 1e-5)
     df['violations_per_year'] = df['violation_count'] / (df['driver_experience'] + 1e-5)
 
-    df['claims_recent'] = (df['days_since_last_claim'] < 365).astype(int)
-    df['high_night_driving'] = (df['night_driving_ratio'] > 0.3).astype(int)
-    df['young_inexperienced'] = ((df['driver_age'] < 25) & (df['driver_experience'] < 3)).astype(int)
-    df['power_to_age'] = df['engine_power'] / (df['vehicle_age'] + 1e-5)
-    df['claim_violation_ratio'] = df['num_claims'] / (df['violation_count'] + 1)
+
+    df['no_claims_long'] = ((df['num_claims'] == 0) & (df['driver_experience'] >= 5)).astype(int)
+    df['experienced_clean'] = (
+            (df['driver_experience'] >= 10) &
+            (df['num_claims'] == 0) &
+            (df['violation_count'] == 0)
+    ).astype(int)
+    df['young_risky'] = ((df['driver_age'] < 26) & (df['violation_count'] > 0)).astype(int)
+    df['high_claims'] = (df['num_claims'] >= 2).astype(int)
+
+    df['night_x_trips'] = df['night_driving_ratio'] * df['avg_trips_per_week']
+    df['power_x_age'] = df['engine_power'] * df['vehicle_age']
 
     return df

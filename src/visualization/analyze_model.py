@@ -1,5 +1,3 @@
-
-
 from src.models.catboost.insurance_model import InsuranceRiskModel
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,16 +7,35 @@ from sklearn.metrics import confusion_matrix, roc_curve, auc, accuracy_score, pr
 import numpy as np
 
 
-def load_and_analyze(model_path="outputs/insurance_model_v1.cbm"):
+def load_robust_csv(file_path: str) -> pd.DataFrame:
 
+    try:
+        df = pd.read_csv(file_path)
+        return df
+    except pd.errors.ParserError:
+        # Пропускаем битые строки
+        df = pd.read_csv(file_path, on_bad_lines='skip')
+        return df
+
+
+def load_and_analyze(model_path="outputs/insurance_model_v1.cbm"):
     model = InsuranceRiskModel(model_path=model_path)
 
-
-    # Загрузка данных
     try:
-        df = pd.read_csv("src/data/raw/insurance_data.csv")
+        df = load_robust_csv("src/data/raw/insurance_data.csv")
+
+        df = df.dropna(subset=['driver_age', 'driver_experience', 'num_claims'])
+
+        if 'target' not in df.columns:
+            df['target'] = (df['num_claims'] > 0).astype(int)
+        else:
+
+            df = df.dropna(subset=['target'])
+
+        df['target'] = pd.to_numeric(df['target'], errors='coerce').fillna(0).astype(int)
+
     except FileNotFoundError:
-        print("❌ Файл данных не найден. Используем тестовые данные.")
+        print("Файла нет")
         df = pd.DataFrame([{
             'driver_age': 30,
             'driver_experience': 8,
@@ -39,7 +56,7 @@ def load_and_analyze(model_path="outputs/insurance_model_v1.cbm"):
             'night_driving_ratio': 0.1,
             'ko_multiplier': 1.0,
             'num_owned_vehicles': 1,
-            'target': 0
+            'target': 1
         }, {
             'driver_age': 25,
             'driver_experience': 3,
@@ -63,21 +80,19 @@ def load_and_analyze(model_path="outputs/insurance_model_v1.cbm"):
             'target': 1
         }])
 
-    # Предобработка через единый pipeline
+    if len(df) == 0:
+        raise ValueError("Нет данных для анализа")
+
     X = df.drop(columns=["target"])
     y = df["target"]
 
-    # Используем preprocess из модели — он уже включает генерацию признаков
     X_processed = model.preprocess(X)
 
-    # Предсказания
     y_pred_proba = model.model.predict_proba(X_processed)[:, 1]
 
-    # Используем порог из модели, если он установлен, иначе 0.5
     threshold = getattr(model, 'threshold', 0.5)
     y_pred = (y_pred_proba >= threshold).astype(int)
 
-    # Визуализация
     plot_confusion_matrix(y, y_pred)
     plot_roc_curve(y, y_pred_proba)
     print_metrics(y, y_pred_proba, threshold=threshold)
@@ -142,23 +157,22 @@ def plot_feature_importance(model):
         feat_imp = model.model.get_feature_importance()
         feature_names = model.model.feature_names_
     except Exception as e:
-        print(f"⚠️ Не удалось получить важность признаков: {e}")
+        print(f"Не удалось получить важность признаков: {e}")
         return
 
     if len(feat_imp) != len(feature_names):
-        print("⚠️ Несоответствие длины признаков и важности")
+        print("Несоответствие длины признаков и важности")
         return
 
-    # Сортировка по убыванию
     indices = np.argsort(feat_imp)[::-1]
-    top_n = min(15, len(feature_names))  # Показываем топ-15
+    top_n = min(15, len(feature_names))
     indices = indices[:top_n]
 
     plt.figure(figsize=(10, 8))
     plt.barh(range(len(indices)), feat_imp[indices])
     plt.yticks(range(len(indices)), [feature_names[i] for i in indices])
-    plt.gca().invert_yaxis()  # Самый важный — сверху
-    plt.title('Важность признаков (Top 15)')
+    plt.gca().invert_yaxis()
+    plt.title('Важность признаков')
     plt.xlabel('Важность (Feature Importance)')
     plt.tight_layout()
     plt.show()
