@@ -2,10 +2,10 @@ from src.models.hybrid.kbm_calculator import HybridKBMCalculator
 
 
 def main():
-    print("ТЕСТИРОВАНИЕ ОДНОЙ ПОЕЗДКИ ДЛЯ РАЗНЫХ ВОДИТЕЛЕЙ")
+    print("Тестик")
     print("=" * 90)
 
-    calculator = HybridKBMCalculator(model_path="src/outputs/insurance_model_v1.cbm")
+    calculator = HybridKBMCalculator(model_path="outputs/insurance_model_v1.cbm")
 
 
     drivers = [
@@ -117,7 +117,6 @@ def main():
 
         print("─" * 90)
 
-    print("Все комбинации протестированы.")
 
 
 if __name__ == "__main__":

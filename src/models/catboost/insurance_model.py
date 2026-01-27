@@ -19,8 +19,8 @@ class InsuranceRiskModel:
             else:
                 self.model = joblib.load(model_path)
         else:
-
-            self.model = None
+            # ВСЕГДА создаём пустую модель, чтобы избежать AttributeError
+            self.model = CatBoostClassifier()
 
         self.required_features = [
             'driver_age',
@@ -78,9 +78,7 @@ class InsuranceRiskModel:
 
         for col in num_features:
             if col in df.columns:
-
                 df[col] = pd.to_numeric(df[col], errors='coerce')
-
                 median_val = df[col].median()
                 if pd.isna(median_val):
                     median_val = 0.0

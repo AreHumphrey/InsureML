@@ -11,7 +11,7 @@ def test_case(name: str, obd_file_path: str = None):
     else:
         print(" OBD-файл не предоставлен")
 
-    calc = OSAGOCalculator(model_path="src/outputs/insurance_model_v1.cbm")
+    calc = OSAGOCalculator(model_path="outputs/insurance_model_v1.cbm")
 
     driver_case = pd.DataFrame([{
         'driver_age': 35,
@@ -36,7 +36,6 @@ def test_case(name: str, obd_file_path: str = None):
         'description': 'Тестовый водитель'
     }])
 
-    # Расчёт тарифа
     result = calc.calculate_osago_premium(
         driver_data=driver_case,
         obd_file_path=obd_file_path,
@@ -59,7 +58,7 @@ def test_case(name: str, obd_file_path: str = None):
 
 
 def main():
-    print("ТЕСТИРОВАНИЕ ГИБРИДНОГО КАЛЬКУЛЯТОРА ОСАГО")
+    print("Тестик")
     print("=" * 80)
 
     test_case("Только анкета", obd_file_path=None)
