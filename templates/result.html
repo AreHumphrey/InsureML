@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Результат расчёта{% endblock %}
+
+{% block content %}
+<h2>Результат расчёта ОСАГО</h2>
+
+<div style="background:#f0f8ff; padding:20px; border-radius:8px; margin:20px 0;">
+  <p><strong>Вероятность страхового случая:</strong> {{ result.probability }} ({{ result.risk_class }} риск)</p>
+  <p><strong>КБМ:</strong> {{ result.kbm }}</p>
+  <p><strong>Базовая ставка:</strong> {{ result.base_rate }} ₽</p>
+  <p><strong>Итоговый тариф ОСАГО:</strong> <b>{{ result.ctp_tariff }} ₽</b></p>
+</div>
+
+<p>💡 Рекомендация: при высоком риске рекомендуется повысить франшизу или выбрать дополнительные опции.</p>
+
+<a href="{{ url_for('calculate') }}" class="btn green">Рассчитать ещё</a>
+<a href="{{ url_for('index') }}" class="btn outline">На главную</a>
+{% endblock %}

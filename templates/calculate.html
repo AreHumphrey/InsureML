@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Расчёт ОСАГО{% endblock %}
+
+{% block content %}
+<h2>Введите данные водителя и автомобиля</h2>
+<form method="POST">
+    <table>
+        <tr><td>Возраст водителя</td><td><input type="number" name="driver_age" required></td></tr>
+        <tr><td>Стаж вождения</td><td><input type="number" name="driver_experience" required></td></tr>
+        <tr><td>Возраст авто</td><td><input type="number" name="vehicle_age" required></td></tr>
+        <tr><td>Тип авто</td><td>
+            <select name="vehicle_type">
+                <option value="sedan">Седан</option>
+                <option value="hatchback">Хэтчбэк</option>
+                <option value="suv">Внедорожник</option>
+                <option value="crossover">Кроссовер</option>
+            </select>
+        </td></tr>
+        <tr><td>Мощность, л.с.</td><td><input type="number" name="engine_power" required></td></tr>
+        <tr><td>Назначение</td><td><select name="vehicle_purpose"><option value="personal">Личное</option></select></td></tr>
+        <tr><td>Регион</td><td>
+            <select name="region">
+                <option value="Moscow">Москва</option>
+                <option value="StPetersburg">СПб</option>
+                <option value="urban">Город</option>
+                <option value="rural">Село</option>
+            </select>
+        </td></tr>
+        <tr><td>% дней со снегом</td><td><input type="number" step="0.01" name="pct_days_with_snow" required></td></tr>
+        <tr><td>% дней с дождём</td><td><input type="number" step="0.01" name="pct_days_with_rain" required></td></tr>
+        <tr><td>Зима, мес</td><td><input type="number" name="winter_duration_months" required></td></tr>
+        <tr><td>КБМ</td><td><input type="number" step="0.01" name="base_kbm" value="1.0" required></td></tr>
+        <tr><td>Число ДТП</td><td><input type="number" name="num_claims" value="0" required></td></tr>
+        <tr><td>Штрафы</td><td><input type="number" name="violation_count" value="0" required></td></tr>
+        <tr><td>Дней с последнего ДТП</td><td><input type="number" name="days_since_last_claim" value="365" required></td></tr>
+        <tr><td>Профессия</td><td><input type="text" name="occupation_type" value="office_worker" required></td></tr>
+        <tr><td>Поездок/нед</td><td><input type="number" step="0.1" name="avg_trips_per_week" value="5.0" required></td></tr>
+        <tr><td>Ночная езда, %</td><td><input type="number" step="0.0001" name="night_driving_ratio" value="0.01" required></td></tr>
+        <tr><td>Коэф. владения</td><td><input type="number" step="0.01" name="ko_multiplier" value="1.0" required></td></tr>
+        <tr><td>Авто в собственности</td><td><input type="number" name="num_owned_vehicles" value="1" required></td></tr>
+    </table>
+    <br>
+    <button type="submit">Рассчитать ОСАГО</button>
+    <a href="{{ url_for('index') }}">Отмена</a>
+</form>
+{% endblock %}

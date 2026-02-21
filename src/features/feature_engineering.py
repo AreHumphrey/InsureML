@@ -17,6 +17,7 @@ def generate_features(df: pd.DataFrame) -> pd.DataFrame:
             (df['num_claims'] == 0) &
             (df['violation_count'] == 0)
     ).astype(int)
+
     df['young_risky'] = ((df['driver_age'] < 26) & (df['violation_count'] > 0)).astype(int)
     df['high_claims'] = (df['num_claims'] >= 2).astype(int)
 
