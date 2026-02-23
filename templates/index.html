@@ -28,7 +28,6 @@
       align-items: center;
       text-align: center;
       padding: 0 20px;
-      /* Фоновое изображение — замените URL */
       background: url('static/img/Home.svg') no-repeat center center/cover;
     }
 
@@ -66,7 +65,7 @@
       box-shadow: inset 0px 9px 3px #ffffff38, inset 0px 25px 26px -23px #ffffff96, inset 0px -12px 5px -6px #0000007d, inset 0px -29px 26px -8px #0000004a, 0px 4px 4px #00000040;
     }
 
-    /* Заголовок */
+
     h1 {
       font-size: 70px;
       font-weight: 700;
@@ -77,7 +76,7 @@
       color: #DBE3E6;
     }
 
-    /* Подзаголовок */
+
     p.subtitle {
       font-size: 20px;
       max-width: 800px;
@@ -89,7 +88,7 @@
       color: #DBE3E6;
     }
 
-    /* Кнопки */
+
     .btn-group {
       display: flex;
       gap: 20px;
@@ -105,6 +104,7 @@
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 4px 15px rgba(0, 200, 83, 0.3);
+      text-decoration: none;
     }
 
     .btn-primary {
@@ -127,7 +127,7 @@
       background: rgba(255,255,255,0.1);
     }
 
-    /* Логотип внизу */
+
     .footer-logo {
       position: absolute;
       bottom: 40px;
@@ -176,7 +176,7 @@
       opacity: 0.8;
     }
 
-    /* Дуга под логотипом */
+
     .arc {
       position: absolute;
       bottom: 60px;
@@ -211,11 +211,11 @@
 
     <div class="btn-group">
       <button class="btn btn-primary">Calculate</button>
-      <button class="btn btn-outline">Documentation</button>
+      <a href="{{ url_for('docs') }}" class="btn btn-outline">Documentation</a>
     </div>
 
 
-    <!-- Логотип внизу -->
+
     <div class="footer-logo">
         <img src="static/img/dvfu_logo.svg">
     </div>
