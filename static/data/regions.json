@@ -1,0 +1,42 @@
+{
+  "Moscow": {
+    "pct_days_with_snow": 0.35,
+    "pct_days_with_rain": 0.45,
+    "winter_duration_months": 5
+  },
+  "Saint Petersburg": {
+    "pct_days_with_snow": 0.40,
+    "pct_days_with_rain": 0.55,
+    "winter_duration_months": 5
+  },
+  "Sochi": {
+    "pct_days_with_snow": 0.05,
+    "pct_days_with_rain": 0.30,
+    "winter_duration_months": 1
+  },
+  "Novosibirsk": {
+    "pct_days_with_snow": 0.50,
+    "pct_days_with_rain": 0.30,
+    "winter_duration_months": 6
+  },
+  "Yekaterinburg": {
+    "pct_days_with_snow": 0.45,
+    "pct_days_with_rain": 0.35,
+    "winter_duration_months": 6
+  },
+  "Kazan": {
+    "pct_days_with_snow": 0.40,
+    "pct_days_with_rain": 0.35,
+    "winter_duration_months": 5
+  },
+  "Vladivostok": {
+    "pct_days_with_snow": 0.30,
+    "pct_days_with_rain": 0.40,
+    "winter_duration_months": 4
+  },
+  "Other": {
+    "pct_days_with_snow": 0.30,
+    "pct_days_with_rain": 0.30,
+    "winter_duration_months": 4
+  }
+}
