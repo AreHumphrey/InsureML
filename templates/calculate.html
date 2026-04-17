@@ -373,6 +373,7 @@
       cursor: pointer;
       letter-spacing: 0.08em;
       transition: all 0.3s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
     }
 
     .upload-btn:hover {
@@ -657,6 +658,39 @@ select option[selected] {
         order: 3;
       }
     }
+
+        /* Стили для input file */
+    input[type="file"] {
+      width: 100%;
+      padding: 20px;
+      background: var(--input-bg);
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    input[type="file"]:hover {
+      border-color: var(--accent-green);
+      background: rgba(0, 212, 106, 0.05);
+    }
+
+    input[type="file"]::file-selector-button {
+      background: var(--accent-green);
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-right: 15px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      background: var(--accent-green-dark);
+    }
   </style>
 </head>
 <body>
@@ -792,7 +826,7 @@ select option[selected] {
         </div>
 
         <div class="form-group full-width">
-          <label>Occupation Type</label>
+          <label>Residential Address</label>
           <input type="text" name="policyholder_occupation" placeholder="123 Lenin St, Apt 45, Moscow, 123456">
         </div>
 
@@ -975,6 +1009,102 @@ select option[selected] {
       </div>
     </div>
 
+    <!-- Driving Style Section (по умолчанию скрыта) -->
+<div id="driving-style-section" class="form-section" style="display: none;">
+  <h2 class="section-title">Driving style Indicators</h2>
+  <div class="form-grid">
+    
+    <div class="form-group">
+      <label>Average speed (km/h)</label>
+      <input type="number" name="avg_speed" placeholder="80" min="0" max="200">
+    </div>
+
+    <div class="form-group">
+      <label>Maximum speed (km/h)</label>
+      <input type="number" name="max_speed" placeholder="140" min="0" max="250">
+    </div>
+
+    <div class="form-group full-width">
+      <label>Numerical characteristics:</label>
+    </div>
+
+    <div class="form-group">
+      <label>Sudden braking</label>
+      <input type="number" name="sudden_braking" placeholder="80" min="0" max="100">
+    </div>
+
+    <div class="form-group">
+      <label>Sharp turns</label>
+      <input type="number" name="sharp_turns" placeholder="80" min="0" max="100">
+    </div>
+
+    <div class="form-group">
+      <label>Sudden acceleration</label>
+      <input type="number" name="sudden_acceleration" placeholder="80" min="0" max="100">
+    </div>
+
+    <div class="form-group">
+      <label>Average speed (km/h)</label>
+      <input type="number" name="avg_speed_2" placeholder="80" min="0" max="200">
+    </div>
+
+    <div class="form-group">
+      <label>Maximum speed (km/h)</label>
+      <input type="number" name="max_speed_2" placeholder="140" min="0" max="250">
+    </div>
+
+    <div class="form-group">
+      <label>Share of overnight trips (%)</label>
+      <input type="number" name="overnight_trips" placeholder="2" min="0" max="100" step="0.1">
+    </div>
+
+    <div class="form-group">
+      <label>Average coolant temperature (°C)</label>
+      <input type="number" name="coolant_temp" placeholder="80" min="0" max="120">
+    </div>
+
+    <div class="form-group full-width">
+      <label>Are there any DTC errors?</label>
+      <div class="toggle-group">
+        <input type="radio" name="dtc_errors" value="yes" id="dtc_yes">
+        <label for="dtc_yes">YES</label>
+        <input type="radio" name="dtc_errors" value="no" id="dtc_no" checked>
+        <label for="dtc_no">NO</label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Average data frequency (Hz)</label>
+      <input type="number" name="data_frequency" placeholder="2" min="1" max="100">
+    </div>
+
+    <div class="form-group">
+      <label>Duration of the trip (seconds)</label>
+      <input type="number" name="trip_duration" placeholder="10000" min="0">
+    </div>
+
+  </div>
+</div>
+
+  <!-- File Upload Section (по умолчанию скрыта) -->
+  <div id="file-upload-section" class="form-section" style="display: none;">
+    <h2 class="section-title">Upload DTC Data File</h2>
+    <div class="form-grid single-col">
+      
+      <div class="form-group full-width">
+        <label>Select CSV file with OBD-II data</label>
+        <input type="file" name="dtc_file" accept=".csv" id="dtc_file_input" style="padding: 20px; background: var(--input-bg); border: 2px dashed var(--border); border-radius: 12px; cursor: pointer;">
+      </div>
+
+      <div class="form-group full-width">
+        <label style="color: var(--text-muted); font-size: 0.85rem;">
+          Supported format: CSV with columns: dtc, timestamp, value, etc.
+        </label>
+      </div>
+
+    </div>
+  </div>
+
 
     <div class="action-section">
       <div class="upload-toggle">
@@ -986,6 +1116,8 @@ select option[selected] {
 
   </form>
 </div>
+
+
 
 <footer>
     <div class="footer-logo">OSAGOCalculator</div>
@@ -1037,6 +1169,52 @@ select option[selected] {
         label.style.color = '';
       });
     });
+  });
+
+
+    // Переключение между загрузкой файла и ручным вводом
+  const uploadBtn = document.querySelector('.upload-btn');
+  const manualLink = document.querySelector('.manual-link');
+  const drivingStyleSection = document.getElementById('driving-style-section');
+  const fileUploadSection = document.getElementById('file-upload-section');
+  let isManualMode = true; // По умолчанию ручной ввод
+
+  uploadBtn.addEventListener('click', function() {
+    if (isManualMode) {
+      // Показываем загрузку файла
+      drivingStyleSection.style.display = 'none';
+      fileUploadSection.style.display = 'block';
+      uploadBtn.textContent = 'Attach a file';
+      uploadBtn.style.background = '#00664E';
+      manualLink.textContent = 'Fill in the data manually';
+      isManualMode = false;
+    } else {
+      // Клик по той же кнопке - ничего не делаем или можно сбросить
+      document.getElementById('dtc_file_input').click();
+    }
+  });
+
+  manualLink.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (isManualMode) {
+      // Показываем ручной ввод
+      drivingStyleSection.style.display = 'block';
+      fileUploadSection.style.display = 'none';
+      manualLink.textContent = 'Attach a file';
+      manualLink.style.color = '#00A55E';
+      uploadBtn.textContent = 'Fill in manually';
+      uploadBtn.style.background = 'transparent';
+      isManualMode = false;
+    } else {
+      // Возвращаемся к загрузке файла
+      drivingStyleSection.style.display = 'none';
+      fileUploadSection.style.display = 'block';
+      manualLink.textContent = 'Fill in the data manually';
+      manualLink.style.color = 'var(--text-light)';
+      uploadBtn.textContent = 'Attach a file';
+      uploadBtn.style.background = '#00664E';
+      isManualMode = true;
+    }
   });
 </script>
 
