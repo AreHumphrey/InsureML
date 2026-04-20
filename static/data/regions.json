@@ -34,6 +34,108 @@
     "pct_days_with_rain": 0.40,
     "winter_duration_months": 4
   },
+  
+  "Rostov-on-Don": {
+    "pct_days_with_snow": 0.20,
+    "pct_days_with_rain": 0.35,
+    "winter_duration_months": 3
+  },
+  "Krasnodar": {
+    "pct_days_with_snow": 0.15,
+    "pct_days_with_rain": 0.30,
+    "winter_duration_months": 2
+  },
+  "Volgograd": {
+    "pct_days_with_snow": 0.25,
+    "pct_days_with_rain": 0.25,
+    "winter_duration_months": 4
+  },
+  "Voronezh": {
+    "pct_days_with_snow": 0.30,
+    "pct_days_with_rain": 0.35,
+    "winter_duration_months": 4
+  },
+  
+  "Nizhny Novgorod": {
+    "pct_days_with_snow": 0.40,
+    "pct_days_with_rain": 0.40,
+    "winter_duration_months": 5
+  },
+  "Samara": {
+    "pct_days_with_snow": 0.35,
+    "pct_days_with_rain": 0.30,
+    "winter_duration_months": 5
+  },
+  "Saratov": {
+    "pct_days_with_snow": 0.30,
+    "pct_days_with_rain": 0.28,
+    "winter_duration_months": 4
+  },
+  "Tula": {
+    "pct_days_with_snow": 0.38,
+    "pct_days_with_rain": 0.42,
+    "winter_duration_months": 5
+  },
+  "Yaroslavl": {
+    "pct_days_with_snow": 0.42,
+    "pct_days_with_rain": 0.38,
+    "winter_duration_months": 5
+  },
+  
+  "Chelyabinsk": {
+    "pct_days_with_snow": 0.48,
+    "pct_days_with_rain": 0.32,
+    "winter_duration_months": 6
+  },
+  "Omsk": {
+    "pct_days_with_snow": 0.52,
+    "pct_days_with_rain": 0.28,
+    "winter_duration_months": 6
+  },
+  "Tomsk": {
+    "pct_days_with_snow": 0.55,
+    "pct_days_with_rain": 0.30,
+    "winter_duration_months": 7
+  },
+  "Krasnoyarsk": {
+    "pct_days_with_snow": 0.50,
+    "pct_days_with_rain": 0.32,
+    "winter_duration_months": 6
+  },
+  "Irkutsk": {
+    "pct_days_with_snow": 0.48,
+    "pct_days_with_rain": 0.35,
+    "winter_duration_months": 6
+  },
+  
+  "Khabarovsk": {
+    "pct_days_with_snow": 0.35,
+    "pct_days_with_rain": 0.45,
+    "winter_duration_months": 5
+  },
+  "Yakutsk": {
+    "pct_days_with_snow": 0.60,
+    "pct_days_with_rain": 0.25,
+    "winter_duration_months": 8
+  },
+  
+  "Murmansk": {
+    "pct_days_with_snow": 0.45,
+    "pct_days_with_rain": 0.50,
+    "winter_duration_months": 7
+  },
+  "Arkhangelsk": {
+    "pct_days_with_snow": 0.50,
+    "pct_days_with_rain": 0.40,
+    "winter_duration_months": 6
+  },
+  
+  "Kaliningrad": {
+    "pct_days_with_snow": 0.25,
+    "pct_days_with_rain": 0.55,
+    "winter_duration_months": 3
+  },
+  
   "Other": {
     "pct_days_with_snow": 0.30,
     "pct_days_with_rain": 0.30,

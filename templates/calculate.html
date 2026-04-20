@@ -694,19 +694,22 @@ select option[selected] {
   </style>
 </head>
 <body>
+
+<!-- Header -->
 <header>
   <div class="search-bar">
     <input type="text" placeholder="The more data, the more accurate the pricing plan" disabled />
   </div>
   <h1>OSAGOCalculator</h1>
-
 </header>
 
+<!-- Main Container -->
 <div class="container">
   <a href="{{ url_for('index') }}" class="nav-back">← Back to Home</a>
 
   <form action="/calculate" method="POST" enctype="multipart/form-data">
 
+    <!-- Section 1: Personal Data of the Driver -->
     <div class="form-section">
       <h2 class="section-title">Personal data of the driver</h2>
       <div class="form-grid">
@@ -734,8 +737,52 @@ select option[selected] {
         </div>
 
         <div class="form-group">
+          <label>Region of Registration</label>
+          <select name="region" required>
+            <option value="" disabled selected>Select your city</option>
+            <optgroup label="Southern Russia">
+              <option value="Sochi">Sochi</option>
+              <option value="Krasnodar">Krasnodar</option>
+              <option value="Rostov-on-Don">Rostov-on-Don</option>
+              <option value="Volgograd">Volgograd</option>
+              <option value="Voronezh">Voronezh</option>
+            </optgroup>
+            <optgroup label="Central Russia">
+              <option value="Moscow">Moscow</option>
+              <option value="Saint Petersburg">Saint Petersburg</option>
+              <option value="Kazan">Kazan</option>
+              <option value="Nizhny Novgorod">Nizhny Novgorod</option>
+              <option value="Samara">Samara</option>
+              <option value="Saratov">Saratov</option>
+              <option value="Tula">Tula</option>
+              <option value="Yaroslavl">Yaroslavl</option>
+            </optgroup>
+            <optgroup label="Urals & Siberia">
+              <option value="Yekaterinburg">Yekaterinburg</option>
+              <option value="Chelyabinsk">Chelyabinsk</option>
+              <option value="Novosibirsk">Novosibirsk</option>
+              <option value="Omsk">Omsk</option>
+              <option value="Tomsk">Tomsk</option>
+              <option value="Krasnoyarsk">Krasnoyarsk</option>
+              <option value="Irkutsk">Irkutsk</option>
+            </optgroup>
+            <optgroup label="Far East & North">
+              <option value="Vladivostok">Vladivostok</option>
+              <option value="Khabarovsk">Khabarovsk</option>
+              <option value="Yakutsk">Yakutsk</option>
+              <option value="Murmansk">Murmansk</option>
+              <option value="Arkhangelsk">Arkhangelsk</option>
+            </optgroup>
+            <optgroup label="Other">
+              <option value="Kaliningrad">Kaliningrad</option>
+              <option value="Other">Other city</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="form-group">
           <label>Driver License Number</label>
-          <input type="text" name="license_number" placeholder="77 12 345678" pattern="\d{2} \d{2} \d{6}" title="Format: 77 12 345678">
+          <input type="text" name="license_number" placeholder="77 12 345678" pattern="\d{2} \d{2} \d{6}">
         </div>
 
         <div class="form-group">
@@ -764,7 +811,6 @@ select option[selected] {
 
         <div class="form-group">
           <label>Occupation Type</label>
-          
           <select name="occupation_type" required>
             <option value="" disabled selected>Select one from the list</option>
             <option value="office_worker">Office Worker</option>
@@ -789,6 +835,7 @@ select option[selected] {
       </div>
     </div>
 
+    <!-- Section 2: Policyholder's Details -->
     <div class="form-section">
       <h2 class="section-title">Policyholder's details</h2>
       <div class="form-grid">
@@ -902,7 +949,7 @@ select option[selected] {
 
         <div class="form-group">
           <label>VIN</label>
-          <input type="text" name="vin" placeholder="JTDKARFU8E3123456" pattern="[A-HJ-NPR-Z0-9]{17}" title="17 characters VIN">
+          <input type="text" name="vin" placeholder="JTDKARFU8E3123456" pattern="[A-HJ-NPR-Z0-9]{17}">
         </div>
 
         <div class="form-group">
@@ -987,15 +1034,11 @@ select option[selected] {
             <option value="12">12 months (Full year)</option>
           </select>
         </div>
-        
 
-       
-     
-  
         <div class="form-group">
           <label>Start of the usage period</label>
           <div class="date-input-wrapper">
-            <input type="date" name="usage_period_star" required>
+            <input type="date" name="usage_period_start" required>
           </div>
         </div>
 
@@ -1009,103 +1052,46 @@ select option[selected] {
       </div>
     </div>
 
-    <!-- Driving Style Section (по умолчанию скрыта) -->
-<div id="driving-style-section" class="form-section" style="display: none;">
-  <h2 class="section-title">Driving style Indicators</h2>
-  <div class="form-grid">
-    
-    <div class="form-group">
-      <label>Average speed (km/h)</label>
-      <input type="number" name="avg_speed" placeholder="80" min="0" max="200">
-    </div>
-
-    <div class="form-group">
-      <label>Maximum speed (km/h)</label>
-      <input type="number" name="max_speed" placeholder="140" min="0" max="250">
-    </div>
-
-    <div class="form-group full-width">
-      <label>Numerical characteristics:</label>
-    </div>
-
-    <div class="form-group">
-      <label>Sudden braking</label>
-      <input type="number" name="sudden_braking" placeholder="80" min="0" max="100">
-    </div>
-
-    <div class="form-group">
-      <label>Sharp turns</label>
-      <input type="number" name="sharp_turns" placeholder="80" min="0" max="100">
-    </div>
-
-    <div class="form-group">
-      <label>Sudden acceleration</label>
-      <input type="number" name="sudden_acceleration" placeholder="80" min="0" max="100">
-    </div>
-
-    <div class="form-group">
-      <label>Average speed (km/h)</label>
-      <input type="number" name="avg_speed_2" placeholder="80" min="0" max="200">
-    </div>
-
-    <div class="form-group">
-      <label>Maximum speed (km/h)</label>
-      <input type="number" name="max_speed_2" placeholder="140" min="0" max="250">
-    </div>
-
-    <div class="form-group">
-      <label>Share of overnight trips (%)</label>
-      <input type="number" name="overnight_trips" placeholder="2" min="0" max="100" step="0.1">
-    </div>
-
-    <div class="form-group">
-      <label>Average coolant temperature (°C)</label>
-      <input type="number" name="coolant_temp" placeholder="80" min="0" max="120">
-    </div>
-
-    <div class="form-group full-width">
-      <label>Are there any DTC errors?</label>
-      <div class="toggle-group">
-        <input type="radio" name="dtc_errors" value="yes" id="dtc_yes">
-        <label for="dtc_yes">YES</label>
-        <input type="radio" name="dtc_errors" value="no" id="dtc_no" checked>
-        <label for="dtc_no">NO</label>
+    <!-- Section 5: Driving Style (Hidden by default) -->
+    <div id="driving-style-section" class="form-section" style="display: none;">
+      <h2 class="section-title">Driving style Indicators</h2>
+      <div class="form-grid">
+        <div class="form-group"><label>Average speed (km/h)</label><input type="number" name="avg_speed" placeholder="80" min="0" max="200"></div>
+        <div class="form-group"><label>Maximum speed (km/h)</label><input type="number" name="max_speed" placeholder="140" min="0" max="250"></div>
+        <div class="form-group full-width"><label>Numerical characteristics:</label></div>
+        <div class="form-group"><label>Sudden braking</label><input type="number" name="sudden_braking" placeholder="80" min="0" max="100"></div>
+        <div class="form-group"><label>Sharp turns</label><input type="number" name="sharp_turns" placeholder="80" min="0" max="100"></div>
+        <div class="form-group"><label>Sudden acceleration</label><input type="number" name="sudden_acceleration" placeholder="80" min="0" max="100"></div>
+        <div class="form-group"><label>Average speed (km/h)</label><input type="number" name="avg_speed_2" placeholder="80" min="0" max="200"></div>
+        <div class="form-group"><label>Maximum speed (km/h)</label><input type="number" name="max_speed_2" placeholder="140" min="0" max="250"></div>
+        <div class="form-group"><label>Share of overnight trips (%)</label><input type="number" name="overnight_trips" placeholder="2" min="0" max="100" step="0.1"></div>
+        <div class="form-group"><label>Average coolant temperature (°C)</label><input type="number" name="coolant_temp" placeholder="80" min="0" max="120"></div>
+        <div class="form-group full-width"><label>Are there any DTC errors?</label>
+          <div class="toggle-group">
+            <input type="radio" name="dtc_errors" value="yes" id="dtc_yes"><label for="dtc_yes">YES</label>
+            <input type="radio" name="dtc_errors" value="no" id="dtc_no" checked><label for="dtc_no">NO</label>
+          </div>
+        </div>
+        <div class="form-group"><label>Average data frequency (Hz)</label><input type="number" name="data_frequency" placeholder="2" min="1" max="100"></div>
+        <div class="form-group"><label>Duration of the trip (seconds)</label><input type="number" name="trip_duration" placeholder="10000" min="0"></div>
       </div>
     </div>
 
-    <div class="form-group">
-      <label>Average data frequency (Hz)</label>
-      <input type="number" name="data_frequency" placeholder="2" min="1" max="100">
-    </div>
-
-    <div class="form-group">
-      <label>Duration of the trip (seconds)</label>
-      <input type="number" name="trip_duration" placeholder="10000" min="0">
-    </div>
-
-  </div>
-</div>
-
-  <!-- File Upload Section (по умолчанию скрыта) -->
-  <div id="file-upload-section" class="form-section" style="display: none;">
-    <h2 class="section-title">Upload DTC Data File</h2>
-    <div class="form-grid single-col">
-      
-      <div class="form-group full-width">
-        <label>Select CSV file with OBD-II data</label>
-        <input type="file" name="dtc_file" accept=".csv" id="dtc_file_input" style="padding: 20px; background: var(--input-bg); border: 2px dashed var(--border); border-radius: 12px; cursor: pointer;">
+    <!-- Section 6: File Upload (Hidden by default) -->
+    <div id="file-upload-section" class="form-section" style="display: none;">
+      <h2 class="section-title">Upload DTC Data File</h2>
+      <div class="form-grid single-col">
+        <div class="form-group full-width">
+          <label>Select CSV file with OBD-II data</label>
+          <input type="file" name="dtc_file" accept=".csv" id="dtc_file_input">
+        </div>
+        <div class="form-group full-width">
+          <label style="color: var(--text-muted); font-size: 0.85rem;">Supported format: CSV with columns: dtc, timestamp, value, etc.</label>
+        </div>
       </div>
-
-      <div class="form-group full-width">
-        <label style="color: var(--text-muted); font-size: 0.85rem;">
-          Supported format: CSV with columns: dtc, timestamp, value, etc.
-        </label>
-      </div>
-
     </div>
-  </div>
 
-
+    <!-- Action Section -->
     <div class="action-section">
       <div class="upload-toggle">
         <button type="button" class="upload-btn">Attach a file</button>
@@ -1113,36 +1099,31 @@ select option[selected] {
       </div>
       <button type="submit" class="calculate-btn">Calculate</button>
     </div>
-
+    <input type="hidden" name="base_kbm" id="hidden_base_kbm" value="1.0">
   </form>
 </div>
 
-
-
+<!-- Footer -->
 <footer>
-    <div class="footer-logo">OSAGOCalculator</div>
-    <div class="vertical-divider"></div>
+  <div class="footer-logo">OSAGOCalculator</div>
+  <div class="vertical-divider"></div>
   <div class="footer-left">
-
     <div class="footer-links">
       <a href="{{ url_for('docs') }}">Docs</a>
       <a href="{{ url_for('index') }}">Home</a>
       <a href="#">Calculator</a>
     </div>
-
-    <div class="footer-center">
-      © 2025 OSAGOCalculator, Inc.
-    </div>
+    <div class="footer-center">© {{ current_year }} OSAGOCalculator, Inc.</div>
   </div>
-
   <div class="footer-right">
-    <img src="static/img/dvfu_logo_footer.svg" alt="Far Eastern Federal University">
+    <img src="{{ url_for('static', filename='img/dvfu_logo_footer.svg') }}" alt="Far Eastern Federal University">
   </div>
 </footer>
 
+<!-- JavaScript -->
 <script>
-
-  document.querySelector('input[name="vehicle_year"]').addEventListener('change', function() {
+  // Auto-calculate vehicle age
+  document.querySelector('input[name="vehicle_year"]')?.addEventListener('change', function() {
     const year = parseInt(this.value);
     const currentYear = new Date().getFullYear();
     if (year && year >= 1990 && year <= currentYear) {
@@ -1150,8 +1131,8 @@ select option[selected] {
     }
   });
 
-
-  document.querySelector('input[name="license_date"]').addEventListener('change', function() {
+  // Auto-calculate driving experience
+  document.querySelector('input[name="license_date"]')?.addEventListener('change', function() {
     const licenseDate = new Date(this.value);
     const today = new Date();
     const yearsExp = Math.floor((today - licenseDate) / (365.25 * 24 * 60 * 60 * 1000));
@@ -1160,28 +1141,23 @@ select option[selected] {
     }
   });
 
-
+  // Toggle group visual feedback
   document.querySelectorAll('.toggle-group input[type="radio"]').forEach(radio => {
     radio.addEventListener('change', function() {
       const labels = this.parentElement.querySelectorAll('label');
-      labels.forEach(label => {
-        label.style.background = '';
-        label.style.color = '';
-      });
+      labels.forEach(label => { label.style.background = ''; label.style.color = ''; });
     });
   });
 
-
-    // Переключение между загрузкой файла и ручным вводом
+  // Toggle between file upload and manual input
   const uploadBtn = document.querySelector('.upload-btn');
   const manualLink = document.querySelector('.manual-link');
   const drivingStyleSection = document.getElementById('driving-style-section');
   const fileUploadSection = document.getElementById('file-upload-section');
-  let isManualMode = true; // По умолчанию ручной ввод
+  let isManualMode = true;
 
-  uploadBtn.addEventListener('click', function() {
+  uploadBtn?.addEventListener('click', function() {
     if (isManualMode) {
-      // Показываем загрузку файла
       drivingStyleSection.style.display = 'none';
       fileUploadSection.style.display = 'block';
       uploadBtn.textContent = 'Attach a file';
@@ -1189,15 +1165,13 @@ select option[selected] {
       manualLink.textContent = 'Fill in the data manually';
       isManualMode = false;
     } else {
-      // Клик по той же кнопке - ничего не делаем или можно сбросить
-      document.getElementById('dtc_file_input').click();
+      document.getElementById('dtc_file_input')?.click();
     }
   });
 
-  manualLink.addEventListener('click', function(e) {
+  manualLink?.addEventListener('click', function(e) {
     e.preventDefault();
     if (isManualMode) {
-      // Показываем ручной ввод
       drivingStyleSection.style.display = 'block';
       fileUploadSection.style.display = 'none';
       manualLink.textContent = 'Attach a file';
@@ -1206,7 +1180,6 @@ select option[selected] {
       uploadBtn.style.background = 'transparent';
       isManualMode = false;
     } else {
-      // Возвращаемся к загрузке файла
       drivingStyleSection.style.display = 'none';
       fileUploadSection.style.display = 'block';
       manualLink.textContent = 'Fill in the data manually';
