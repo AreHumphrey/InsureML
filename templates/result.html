@@ -48,7 +48,6 @@
       width: 100%;
     }
 
-    /* Header */
     .header {
       margin-bottom: 40px;
     }
@@ -68,7 +67,6 @@
       font-weight: 600;
     }
 
-    /* Main content grid */
     .content-grid {
       display: grid;
       grid-template-columns: 1fr 1.9fr;
@@ -77,7 +75,6 @@
       position: relative;
     }
 
-    /* Correction reasons (left side) */
     .correction-section {
       display: flex;
       flex-direction: column;
@@ -154,25 +151,20 @@
       font-size: 0.9rem;
     }
 
-    /* Result card (right side) - SIMPLIFIED */
    .result-card {
-    /* Fill: Linear gradient 30% opacity */
     background: linear-gradient(135deg, rgba(173, 229, 205, 0.3) 0%, rgba(0, 102, 78, 0.3) 100%);
     border: 1px solid var(--border);
     border-radius: 20px;
     padding: 32px;
     backdrop-filter: blur(15px);
     position: relative;
-    
-    /* Stroke: Inside 1.5px with gradient 50% opacity */
+
     border: 1.5px solid transparent;
     background-clip: padding-box;
     
-    /* Effects: Drop shadow */
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   }
 
-  /* Градиентная обводка (Stroke 50%) */
   .result-card::before {
     content: "";
     position: absolute;
@@ -205,21 +197,21 @@
     .kbm-row {
       display: flex;
       gap: 40px;
-      align-items: baseline;  /* Выравнивание по базовой линии текста */
+      align-items: baseline; 
     }
 
     .kbm-item {
       display: flex;
-      flex-direction: row;  /* ← Горизонтальное расположение */
+      flex-direction: row; 
       align-items: baseline;
-      gap: 8px;  /* Отступ между меткой и значением */
+      gap: 8px; 
     }
 
     .kbm-label {
       font-size: 1.1rem;
       color: var(--text-muted);
       font-weight: 400;
-      white-space: nowrap;  /* Запрет переноса метки */
+      white-space: nowrap;  
     }
 
     .kbm-value {
@@ -228,7 +220,6 @@
       color: var(--accent-green);
     }
 
-    /* Driver info */
     .driver-info {
       background: rgba(15, 35, 25, 0.5);
       border-radius: 12px;
@@ -272,8 +263,6 @@
       font-weight: 500;
     }
 
-    /* Action buttons - OUTSIDE CONTAINER */
-    /* Action buttons - OUTSIDE CONTAINER */
     .action-section {
       display: flex;
       flex-direction: column;
@@ -308,7 +297,6 @@
       justify-content: center;
     }
 
-    /* Primary button (Download CSV) - FILLED */
     .btn-primary {
       background: rgba(0, 102, 78, 0.8);
       box-shadow: 0 4px 20px rgba(2, 2, 2, 0.3);
@@ -321,7 +309,6 @@
       box-shadow: 0 4px 20px rgba(0, 212, 106, 0.3);
     }
 
-    /* Secondary button (Download PDF) - OUTLINE ONLY */
     .btn-outline {
       background: transparent;
       border: 1px solid rgba(0, 212, 106, 0.4);
@@ -335,7 +322,6 @@
       box-shadow: 0 4px 20px rgba(0, 212, 106, 0.2);
     }
 
-    /* Graph link - SPLIT COLORS */
     .graph-link {
       display: inline-flex;
       text-align: right;
@@ -481,7 +467,6 @@
       color: var(--accent-green);
     }
 
-    /* Responsive */
     @media (max-width: 768px) {
       .content-grid {
         grid-template-columns: 1fr;
@@ -623,7 +608,6 @@
         </div>
       </div>
 
-      <!-- Driver info -->
       <div class="driver-info" style="margin-top: 24px;">
         <h3>Driver Profile</h3>
         <div class="info-grid">
@@ -658,10 +642,10 @@
 
     <div class="action-section">
       <div class="button-row">
-        <button class="btn btn-primary" onclick="window.print()"> Download CSV</button>
-        <button class="btn btn-outline"> Download PDF</button>
+        <button class="btn btn-primary" onclick="downloadCSV()"> Download CSV</button>
+        <button class="btn btn-outline" onclick="downloadPDF()"> Download PDF</button>
       </div>
-      <a href="#" class="graph-link">
+      <a href="/download/graph" class="graph-link" download>
         <span class="highlight">Download the graph</span><span class="muted">of your KBM relative to the average</span>
       </a>
     </div>
@@ -713,6 +697,14 @@
       }
     });
   });
+
+  function downloadCSV() {
+    window.location.href = '/download/csv';
+  }
+  
+  function downloadPDF() {
+    window.location.href = '/download/pdf';
+  }
 </script>
 
 </body>

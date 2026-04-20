@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, render_template, request, redirect, url_for
 import pandas as pd
 import json
@@ -6,6 +5,13 @@ import os
 from datetime import datetime
 from src.models.hybrid.kbm_calculator import HybridKBMCalculator
 from src.utils.dtc_checker import check_dtc_in_file
+from flask import send_file, make_response
+import io
+import csv
+import matplotlib
+matplotlib.use('Agg')  
+import matplotlib.pyplot as plt
+import numpy as np
 
 app = Flask(__name__)
 
@@ -13,22 +19,18 @@ MODEL_PATH = "outputs/insurance_model_v1.cbm"
 REGIONS_JSON = "static/data/regions.json"
 UPLOAD_FOLDER = "static/uploads"
 
-# Создаём папку для загрузок
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Инициализация калькулятора
 try:
     calculator = HybridKBMCalculator(model_path=MODEL_PATH)
-    print("✅ HybridKBMCalculator загружен")
+    print("HybridKBMCalculator загружен")
 except Exception as e:
-    print(f"⚠️ Ошибка загрузки калькулятора: {e}")
+    print(f" Ошибка загрузки калькулятора: {e}")
     calculator = None
 
 
-# ── Вспомогательные функции ──
-
 def load_regions_data():
-    """Загружает данные о регионах из JSON"""
+
     try:
         with open(REGIONS_JSON, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -37,13 +39,12 @@ def load_regions_data():
 
 
 def calculate_age(dob_str):
-    """Считает возраст водителя по дате рождения"""
+
     if not dob_str:
         return 25
     try:
         dob = datetime.strptime(dob_str, "%Y-%m-%d")
         age = datetime.now().year - dob.year
-        # Корректировка: если день рождения ещё не был в этом году
         if (datetime.now().month, datetime.now().day) < (dob.month, dob.day):
             age -= 1
         return max(18, min(80, age))
@@ -52,7 +53,6 @@ def calculate_age(dob_str):
 
 
 def calculate_experience(license_date_str):
-    """Считает стаж вождения по дате получения прав"""
     if not license_date_str:
         return 0
     try:
@@ -64,41 +64,21 @@ def calculate_experience(license_date_str):
 
 
 def calculate_base_kbm(num_claims: int, driver_experience: int) -> float:
-    """
-    Автоматически рассчитывает базовый КБМ на основе истории вождения.
-    
-    Логика (упрощённая модель ОСАГО):
-    - Базовое значение: 1.0
-    - За каждый год без ДТП: скидка 5% (макс. до 0.46)
-    - За каждое ДТП: повышение на 50%
-    - Диапазон: [0.46, 3.92]
-    
-    Параметры:
-        num_claims: количество страховых случаев
-        driver_experience: стаж вождения в годах
-    
-    Возвращает:
-        float: рассчитанный коэффициент КБМ
-    """
+
     kbm = 1.0
-    
-    # Оценка безаварийных лет (упрощённо: стаж минус годы с ДТП)
+
     claim_free_years = max(0, driver_experience - num_claims * 2)
-    
-    # Скидка за безаварийную езду (макс. 54% → КБМ 0.46)
+
     discount = min(0.05 * claim_free_years, 0.54)
     kbm -= discount
-    
-    # Штраф за страховые случаи
+
     penalty = num_claims * 0.5
     kbm += penalty
-    
-    # Ограничиваем диапазон [0.46, 3.92]
+
     return round(max(0.46, min(3.92, kbm)), 2)
 
 
 def safe_int(value, default=0, min_val=None, max_val=None):
-    """Безопасное преобразование в int с ограничениями"""
     try:
         val = int(float(value)) if value else default
         if min_val is not None:
@@ -111,7 +91,6 @@ def safe_int(value, default=0, min_val=None, max_val=None):
 
 
 def safe_float(value, default=0.0, min_val=None, max_val=None):
-    """Безопасное преобразование в float с ограничениями"""
     try:
         val = float(value) if value else default
         if min_val is not None:
@@ -123,7 +102,6 @@ def safe_float(value, default=0.0, min_val=None, max_val=None):
         return default
 
 
-# ── Маршруты ──
 
 @app.route("/")
 def index():
@@ -137,35 +115,23 @@ def docs():
 
 @app.route("/calculate", methods=["GET", "POST"])
 def calculate():
-    """
-    Обработчик страницы калькулятора ОСАГО.
-    
-    GET: отображает форму ввода данных.
-    POST: обрабатывает форму, запускает расчёт через ML-модель, возвращает результат.
-    """
-    
-    # === Логирование запроса (для отладки) ===
     if request.method == "POST":
-        print(f"🔍 POST-запрос на /calculate")
-        print(f"📦 Form keys: {list(request.form.keys())}")
-        print(f"📁 Files: {list(request.files.keys())}")
+        print(f" POST-запрос на /calculate")
+        print(f" Form keys: {list(request.form.keys())}")
+        print(f" Files: {list(request.files.keys())}")
     
-    # === Загрузка справочника регионов ===
+
     regions_data = load_regions_data()
-    
-    # === GET: просто показываем форму ===
+
     if request.method == "GET":
         return render_template("calculate.html", regions=list(regions_data.keys()))
-    
-    # === POST: обработка формы ===
-    
-    # 0. Проверка загрузки модели
+
     if not calculator:
-        print("❌ Model not initialized")
+        print(" Model not initialized")
         return "Model not loaded. Please restart the server.", 503
     
     try:
-        # ── 1. Обработка загруженного DTC-файла ──
+
         dtc_file = request.files.get('dtc_file')
         has_dtc = False
         obd_file_path = None
@@ -176,49 +142,40 @@ def calculate():
                 filename = f"dtc_{timestamp}.csv"
                 obd_file_path = os.path.join(UPLOAD_FOLDER, filename)
                 dtc_file.save(obd_file_path)
-                print(f"💾 Файл сохранён: {obd_file_path}")
+                print(f" Файл сохранён: {obd_file_path}")
                 
                 has_dtc = check_dtc_in_file(obd_file_path)
-                print(f"🔍 DTC-анализ: ошибки = {has_dtc}")
+                print(f" DTC-анализ: ошибки = {has_dtc}")
                 
             except Exception as e:
-                print(f"⚠️ Ошибка обработки DTC-файла: {e}")
+                print(f" Ошибка обработки DTC-файла: {e}")
                 has_dtc = False
-        
-        # ── 2. Сбор и валидация данных формы ──
-        
-        # Регион + погода из JSON
+
         region_name = request.form.get("region", "Other")
         weather = regions_data.get(region_name, regions_data.get("Other", {}))
-        
-        # Расчёт возраста и стажа
+
         driver_age = calculate_age(request.form.get("driver_dob"))
         driver_experience = calculate_experience(request.form.get("license_date"))
-        
-        # Возраст автомобиля
+
         try:
             vehicle_year = int(request.form.get("vehicle_year", 2020))
             vehicle_age = max(0, min(30, datetime.now().year - vehicle_year))
         except (ValueError, TypeError):
             vehicle_year = 2020
             vehicle_age = 5
-        
-        # История страхования (для автоматического расчёта КБМ)
+
         num_claims = safe_int(request.form.get("num_claims"), 0, 0, 20)
         violation_count = safe_int(request.form.get("violation_count"), 0, 0, 50)
         
-        # ✅ АВТОМАТИЧЕСКИЙ РАСЧЁТ Base KBM
         base_kbm = calculate_base_kbm(num_claims, driver_experience)
-        print(f"🧮 Auto-calculated base_kbm: {base_kbm} (claims={num_claims}, exp={driver_experience})")
-        
-        # Булевы флаги → числовые коэффициенты
+        print(f" Auto-calculated base_kbm: {base_kbm} (claims={num_claims}, exp={driver_experience})")
+
         night_driving = 0.5 if request.form.get("night_driving") == "yes" else 0.1
         is_owner = request.form.get("is_owner") == "true"
         unlimited_drivers = request.form.get("unlimited_drivers") == "true"
-        
-        # ── 3. Формирование кейса для модели ──
+
         case_data = {
-            # Основные признаки
+
             'driver_age': driver_age,
             'driver_experience': driver_experience,
             'vehicle_age': vehicle_age,
@@ -226,43 +183,35 @@ def calculate():
             'engine_power': safe_int(request.form.get("engine_power"), 150, 50, 500),
             'vehicle_purpose': request.form.get("vehicle_purpose", "personal"),
             'region': region_name,
-            
-            # Климат из JSON по региону
+
             'pct_days_with_snow': weather.get('pct_days_with_snow', 0.3),
             'pct_days_with_rain': weather.get('pct_days_with_rain', 0.3),
             'winter_duration_months': weather.get('winter_duration_months', 4),
-            
-            # История страхования (base_kbm рассчитан автоматически!)
+
             'base_kbm': base_kbm,
             'num_claims': num_claims,
             'violation_count': violation_count,
             'days_since_last_claim': safe_int(request.form.get("days_since_last_claim"), 365, 0, 3650),
             
-            # Поведенческие данные
             'occupation_type': request.form.get("occupation_type", "office_worker"),
             'avg_trips_per_week': safe_float(request.form.get("trips_per_week"), 5.0, 0, 100),
             'night_driving_ratio': night_driving,
-            
-            # Коэффициенты полиса
+
             'ko_multiplier': 1.8 if unlimited_drivers else 1.0,
             'num_owned_vehicles': 1 if is_owner else 0,
             
-            # Мета-информация
             'description': f"Driver {driver_age}y, {driver_experience}y exp, {region_name}"
         }
-        
-        # ── 4. Запуск расчёта через HybridKBMCalculator ──
+
         result_df = calculator.calculate(
             cases=[case_data],
             obd_file_path=obd_file_path if has_dtc else None,
             show_plot=False
         )
         
-        # ── 5. Подготовка данных для шаблона ──
         result_row = result_df.iloc[0].to_dict()
         
         result = {
-            # Из модели (русские ключи из DataFrame)
             'tariff': result_row.get('Итоговый КБМ', 0) * 2000,
             'final_kbm': result_row.get('Итоговый КБМ'),
             'base_kbm': base_kbm,  # ← используем рассчитанное значение
@@ -278,8 +227,7 @@ def calculate():
             'violation_count': violation_count
         }
         
-        # ── 6. Рендеринг страницы результата ──
-        print(f"✅ Расчёт завершён: base_kbm={base_kbm}, final_kbm={result['final_kbm']}, tariff={result['tariff']:.2f}₽")
+        print(f" Расчёт завершён: base_kbm={base_kbm}, final_kbm={result['final_kbm']}, tariff={result['tariff']:.2f}₽")
         
         return render_template(
             "result.html",
@@ -291,7 +239,7 @@ def calculate():
     except Exception as e:
         import traceback
         error_trace = traceback.format_exc()
-        print(f"❌ Критическая ошибка в /calculate: {e}")
+        print(f" Критическая ошибка в /calculate: {e}")
         print(error_trace)
         
         return render_template(
@@ -305,12 +253,181 @@ def calculate():
 
 @app.context_processor
 def inject_globals():
-    """Добавляет переменные во все шаблоны"""
     return {
         'current_year': datetime.now().year,
         'regions': list(load_regions_data().keys())
     }
 
+
+
+@app.route("/download/pdf")
+def download_pdf():
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    
+    result = {
+        'tariff': 1100,
+        'final_kbm': 0.55,
+        'base_kbm': 0.46,
+        'region': 'Moscow',
+        'driver_desc': 'Driver 40y, 20y exp, Moscow'
+    }
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm)
+    elements = []
+    
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=24, textColor=colors.HexColor('#00D46A'), spaceAfter=30)
+    normal_style = ParagraphStyle('CustomNormal', parent=styles['Normal'], fontSize=12, textColor=colors.HexColor('#E0E0E0'))
+
+    elements.append(Paragraph("OSAGOCalculator — Result", title_style))
+    elements.append(Spacer(1, 0.5*cm))
+    
+    data = [
+        ['Parameter', 'Value'],
+        ['Final CTP Tariff', f"{result['tariff']} ₽"],
+        ['Final KBM', f"{result['final_kbm']}"],
+        ['Base KBM', f"{result['base_kbm']}"],
+        ['Region', result['region']],
+        ['Driver', result['driver_desc']],
+    ]
+    
+    table = Table(data, colWidths=[6*cm, 6*cm])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#00664E')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 14),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#14281E')),
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.whitesmoke),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#00D46A')),
+        ('FONTSIZE', (0, 1), (-1, -1), 12),
+        ('TOPPADDING', (0, 1), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+    ]))
+    
+    elements.append(table)
+    elements.append(Spacer(1, 1*cm))
+    
+    elements.append(Paragraph("© 2025 OSAGOCalculator, Inc. | Far Eastern Federal University", 
+                             ParagraphStyle('Footer', parent=styles['Normal'], fontSize=10, textColor=colors.grey)))
+    
+    doc.build(elements)
+    buffer.seek(0)
+    
+    return send_file(
+        buffer,
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=f"osago_result_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    )
+
+
+@app.route("/download/csv")
+def download_csv():
+
+    result = {
+        'tariff': 1100,
+        'final_kbm': 0.55,
+        'base_kbm': 0.46,
+        'region': 'Moscow',
+        'driver_age': 40,
+        'driver_experience': 20,
+        'vehicle_age': 6,
+        'engine_power': 150,
+        'num_claims': 0,
+        'has_dtc': False
+    }
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    writer.writerow(['OSAGOCalculator Results'])
+    writer.writerow(['Generated', datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+    writer.writerow([])
+    
+    writer.writerow(['Parameter', 'Value'])
+    writer.writerow(['Final CTP Tariff (₽)', result['tariff']])
+    writer.writerow(['Final KBM', result['final_kbm']])
+    writer.writerow(['Base KBM', result['base_kbm']])
+    writer.writerow(['Region', result['region']])
+    writer.writerow([])
+    
+
+    writer.writerow(['Driver Details'])
+    writer.writerow(['Age (years)', result['driver_age']])
+    writer.writerow(['Experience (years)', result['driver_experience']])
+    writer.writerow(['Vehicle Age (years)', result['vehicle_age']])
+    writer.writerow(['Engine Power (hp)', result['engine_power']])
+    writer.writerow(['Number of Claims', result['num_claims']])
+    writer.writerow(['DTC Errors', 'Yes' if result['has_dtc'] else 'No'])
+    
+    output.seek(0)
+    
+    return send_file(
+        io.BytesIO(output.getvalue().encode('utf-8')),
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name=f"osago_result_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    )
+
+
+@app.route("/download/graph")
+def download_graph():
+    
+    base_kbm = 0.46
+    final_kbm = 0.55
+    average_kbm = 1.0 
+    
+
+    fig, ax = plt.subplots(figsize=(10, 6), facecolor='#0A1A15')
+    ax.set_facecolor('#0F2319')
+
+    categories = ['Base KBM', 'Final KBM', 'Average KBM']
+    values = [base_kbm, final_kbm, average_kbm]
+    colors = ['#00D46A', '#00A55E', '#8B8B8B']
+
+    bars = ax.bar(categories, values, color=colors, edgecolor='#00D46A', linewidth=2)
+    
+    for bar, value in zip(bars, values):
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height,
+                f'{value:.2f}',
+                ha='center', va='bottom', 
+                color='#E0E0E0', fontsize=12, fontweight='bold')
+    
+  
+    ax.set_ylabel('KBM Coefficient', color='#A0A0A0', fontsize=12)
+    ax.set_title('Your KBM vs Average Market KBM', color='#E0E0E0', fontsize=16, fontweight='bold', pad=20)
+    ax.set_ylim(0, max(values) * 1.3)
+    
+  
+    ax.grid(axis='y', alpha=0.3, color='#00D46A', linestyle='--')
+    ax.set_axisbelow(True)
+    
+
+    ax.tick_params(colors='#A0A0A0')
+    for spine in ax.spines.values():
+        spine.set_color('#00D46A')
+
+    buffer = io.BytesIO()
+    plt.tight_layout()
+    plt.savefig(buffer, format='png', dpi=150, facecolor=fig.get_facecolor(), edgecolor='none')
+    buffer.seek(0)
+    plt.close(fig)
+    
+    return send_file(
+        buffer,
+        mimetype='image/png',
+        as_attachment=True,
+        download_name=f"kbm_graph_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    )
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)
