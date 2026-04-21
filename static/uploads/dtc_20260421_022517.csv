@@ -1,0 +1,5 @@
+﻿timestamp,dtc,value,description
+2025-01-10 14:20:00,1,P0300,Random/Multiple Cylinder Misfire
+2025-01-10 14:22:00,1,P0171,System Too Lean (Bank 1)
+2025-01-10 14:25:00,1,P0420,Catalyst System Efficiency Below Threshold
+2025-01-10 14:30:00,0,0,No errors
