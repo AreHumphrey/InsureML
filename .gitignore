@@ -1,0 +1,43 @@
+# Виртуальное окружение
+venv/
+env/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Обученная модель
+outputs/*.cbm
+
+# Сырые данные
+src/data/raw/*.csv
+
+# Логи CatBoost
+catboost_info/
+src/catboost_info/
+
+# Flask
+flask_session_data/
+static/uploads/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
